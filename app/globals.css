@@ -254,6 +254,39 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .share-details button:last-child { background: var(--purple); }
 .toast { position: fixed; left: 50%; bottom: 25px; transform: translateX(-50%); background: #111; color: #fff; padding: 12px 18px; border-radius: 99px; z-index: 100; box-shadow: 0 8px 30px rgba(0,0,0,.2); }
 
+/* Standalone public profile */
+.standalone-profile-shell { width: 100%; min-height: 100svh; padding: 62px max(22px,calc((100vw - 620px)/2)) 38px; text-align: center; position: relative; overflow: hidden; }
+.standalone-profile-shell::before { content:""; position:fixed; inset:0; pointer-events:none; background: radial-gradient(circle at 15% 15%,rgba(255,255,255,.3),transparent 30%),radial-gradient(circle at 88% 82%,rgba(255,255,255,.16),transparent 28%); }
+.standalone-loading { position: fixed; inset: 0; z-index: 20; background: #fff; color: #444; display: grid; place-items: center; animation: standaloneFade .35s .2s forwards; }
+@keyframes standaloneFade { to { opacity: 0; visibility: hidden; } }
+.standalone-share { position: absolute; top: 25px; right: max(22px,calc((100vw - 620px)/2)); width: 46px; height: 46px; border: 0; border-radius: 50%; background: rgba(255,255,255,.76); display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(9px); z-index: 2; }
+.standalone-share svg { width: 20px; height: 20px; }
+.standalone-avatar { width: 104px; height: 104px; border-radius: 50%; margin: 25px auto 19px; display: grid; place-items: center; background: linear-gradient(145deg,#30294a,#7c2cff); background-size: cover; background-position: center; color: #fff; font-size: 28px; font-weight: 850; border: 4px solid rgba(255,255,255,.55); position: relative; z-index: 1; }
+.standalone-profile-shell h1 { margin: 0; font-size: clamp(24px,5vw,31px); letter-spacing: -.035em; position: relative; z-index: 1; }
+.standalone-bio { margin: 12px auto 15px; max-width: 470px; opacity: .76; line-height: 1.5; position: relative; z-index: 1; }
+.standalone-socials { display: flex; justify-content: center; gap: 15px; min-height: 31px; align-items: center; margin-bottom: 15px; position: relative; z-index: 1; }
+.standalone-socials svg { width: 22px; height: 22px; }
+.standalone-links { display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 1; }
+.standalone-links > h2 { text-align: left; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin: 14px 0 -3px; opacity: .72; }
+.standalone-links > a { min-height: 68px; border-radius: 17px; border: 1.5px solid transparent; padding: 10px 17px; display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 7px; text-decoration: none; box-shadow: 0 8px 22px rgba(0,0,0,.08); transition: transform .18s,box-shadow .18s; }
+.standalone-links > a:hover { transform: translateY(-2px) scale(1.005); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
+.standalone-links > a svg { width: 25px; height: 25px; }
+.standalone-links > a > strong { font-size: 15px; }
+.standalone-links > a > strong small { display: block; opacity: .65; font-size: 11px; margin-top: 3px; }
+.standalone-links > a > span:last-child { font-size: 12px; }
+.standalone-email { margin-top: 18px; padding: 20px; border-radius: 17px; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(10px); position: relative; z-index: 1; text-align: left; }
+.standalone-email > strong { display: block; margin-bottom: 10px; }
+.standalone-email > div { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.standalone-email input { min-width: 0; border: 0; border-radius: 11px; padding: 13px; }
+.standalone-email button { border: 0; border-radius: 11px; padding: 0 20px; background: #111; color: #fff; font-weight: 700; cursor: pointer; }
+.standalone-profile-shell > footer { margin-top: 34px; font-weight: 850; position: relative; z-index: 1; }
+.standalone-profile-shell > footer span { color: #28d966; }
+@media (min-width: 720px) {
+  body:has(.standalone-profile-shell) { background: #eceef2; }
+  .standalone-profile-shell { max-width: 680px; margin: 0 auto; padding-left: 40px; padding-right: 40px; box-shadow: 0 0 60px rgba(0,0,0,.11); }
+  .standalone-share { right: 28px; }
+}
+
 @media (max-width: 1180px) {
   .dashboard { grid-template-columns: 230px 1fr; }
   .upgrade-bar { grid-template-columns: 230px 1fr auto; }

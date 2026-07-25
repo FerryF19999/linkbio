@@ -424,10 +424,11 @@ function Dashboard({
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
-  const publicUrl = "https://linkspark-nemu.openclawid6.chatgpt.site";
+  const profileSlug = (name || "nemuai").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32) || "nemuai";
+  const publicUrl = `https://linkspark-nemu.openclawid6.chatgpt.site/${profileSlug}`;
 
   useEffect(() => {
-    localStorage.setItem("linkspark-profile", JSON.stringify({
+    const savedProfile = {
       theme: themeId,
       links,
       name,
@@ -438,8 +439,17 @@ function Dashboard({
       subscribers,
       emailCapture,
       complete: true,
-    }));
-  }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture]);
+    };
+    localStorage.setItem("linkspark-profile", JSON.stringify(savedProfile));
+    const syncTimer = window.setTimeout(() => {
+      void fetch("/api/profile", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ slug: profileSlug, profile: savedProfile }),
+      });
+    }, 700);
+    return () => window.clearTimeout(syncTimer);
+  }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture, profileSlug]);
 
   const addLink = () => {
     const id = ++nextId.current;
@@ -706,7 +716,7 @@ function Dashboard({
 
       <aside className={`preview-pane ${mobilePreview ? "open" : ""}`}>
         <div className="preview-pane-top">
-          <button onClick={copyProfile}>linkspark-nemu.openclawid6.chatgpt.site　↗</button>
+          <button onClick={copyProfile}>linkspark-nemu.openclawid6.chatgpt.site/{profileSlug}　↗</button>
           <button className="close-preview" onClick={() => setMobilePreview(false)}>×</button>
         </div>
         <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} profileImage={profileImage} products={products} emailCapture={emailCapture} onLinkClick={recordClick} onSubscribe={addSubscriber} /></div>
