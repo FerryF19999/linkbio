@@ -1,12 +1,31 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { IconType } from "react-icons";
+import { FiExternalLink, FiGlobe, FiMail } from "react-icons/fi";
+import {
+  SiApplemusic,
+  SiFacebook,
+  SiInstagram,
+  SiPatreon,
+  SiPinterest,
+  SiSnapchat,
+  SiSoundcloud,
+  SiSpotify,
+  SiThreads,
+  SiTiktok,
+  SiTwitch,
+  SiWhatsapp,
+  SiX,
+  SiYoutube,
+} from "react-icons/si";
 
 type Platform = {
   id: string;
   name: string;
   icon: string;
   color: string;
+  brandBg?: string;
   placeholder: string;
 };
 
@@ -31,22 +50,55 @@ type Theme = {
 };
 
 const platforms: Platform[] = [
-  { id: "instagram", name: "Instagram", icon: "◎", color: "#e1306c", placeholder: "@username" },
-  { id: "whatsapp", name: "WhatsApp", icon: "◉", color: "#20c66a", placeholder: "+62 812..." },
-  { id: "tiktok", name: "TikTok", icon: "♪", color: "#111111", placeholder: "@username" },
-  { id: "youtube", name: "YouTube", icon: "▶", color: "#ff1f3d", placeholder: "youtube.com/..." },
-  { id: "website", name: "Website", icon: "⌾", color: "#111111", placeholder: "https://..." },
-  { id: "spotify", name: "Spotify", icon: "≋", color: "#1ed760", placeholder: "open.spotify.com/..." },
-  { id: "threads", name: "Threads", icon: "@", color: "#111111", placeholder: "@username" },
-  { id: "facebook", name: "Facebook", icon: "f", color: "#1877f2", placeholder: "facebook.com/..." },
-  { id: "x", name: "X", icon: "𝕏", color: "#111111", placeholder: "@username" },
-  { id: "soundcloud", name: "SoundCloud", icon: "≋", color: "#ff5500", placeholder: "soundcloud.com/..." },
-  { id: "snapchat", name: "Snapchat", icon: "♙", color: "#ffeb00", placeholder: "@username" },
-  { id: "pinterest", name: "Pinterest", icon: "P", color: "#e60023", placeholder: "pinterest.com/..." },
-  { id: "patreon", name: "Patreon", icon: "●", color: "#ff424d", placeholder: "patreon.com/..." },
-  { id: "twitch", name: "Twitch", icon: "▣", color: "#9146ff", placeholder: "twitch.tv/..." },
-  { id: "apple", name: "Apple Music", icon: "♫", color: "#fa4d66", placeholder: "music.apple.com/..." },
+  { id: "instagram", name: "Instagram", icon: "instagram", color: "#e1306c", brandBg: "linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)", placeholder: "@username" },
+  { id: "whatsapp", name: "WhatsApp", icon: "whatsapp", color: "#25d366", placeholder: "+62 812..." },
+  { id: "tiktok", name: "TikTok", icon: "tiktok", color: "#111111", placeholder: "@username" },
+  { id: "youtube", name: "YouTube", icon: "youtube", color: "#ff0033", placeholder: "youtube.com/..." },
+  { id: "website", name: "Website", icon: "website", color: "#111111", placeholder: "https://..." },
+  { id: "spotify", name: "Spotify", icon: "spotify", color: "#1ed760", placeholder: "open.spotify.com/..." },
+  { id: "threads", name: "Threads", icon: "threads", color: "#111111", placeholder: "@username" },
+  { id: "facebook", name: "Facebook", icon: "facebook", color: "#1877f2", placeholder: "facebook.com/..." },
+  { id: "x", name: "X", icon: "x", color: "#111111", placeholder: "@username" },
+  { id: "soundcloud", name: "SoundCloud", icon: "soundcloud", color: "#ff5500", placeholder: "soundcloud.com/..." },
+  { id: "snapchat", name: "Snapchat", icon: "snapchat", color: "#fffc00", placeholder: "@username" },
+  { id: "pinterest", name: "Pinterest", icon: "pinterest", color: "#e60023", placeholder: "pinterest.com/..." },
+  { id: "patreon", name: "Patreon", icon: "patreon", color: "#ff424d", placeholder: "patreon.com/..." },
+  { id: "twitch", name: "Twitch", icon: "twitch", color: "#9146ff", placeholder: "twitch.tv/..." },
+  { id: "apple", name: "Apple Music", icon: "apple", color: "#fa243c", placeholder: "music.apple.com/..." },
 ];
+
+const iconMap: Record<string, IconType> = {
+  instagram: SiInstagram,
+  whatsapp: SiWhatsapp,
+  tiktok: SiTiktok,
+  youtube: SiYoutube,
+  website: FiGlobe,
+  spotify: SiSpotify,
+  threads: SiThreads,
+  facebook: SiFacebook,
+  x: SiX,
+  soundcloud: SiSoundcloud,
+  snapchat: SiSnapchat,
+  pinterest: SiPinterest,
+  patreon: SiPatreon,
+  twitch: SiTwitch,
+  apple: SiApplemusic,
+  email: FiMail,
+  external: FiExternalLink,
+};
+
+function resolveIconName(icon: string, title = "") {
+  if (iconMap[icon]) return icon;
+  const match = platforms.find((platform) => title.toLowerCase().includes(platform.name.toLowerCase()));
+  if (match) return match.icon;
+  if (title.toLowerCase().includes("mail") || title.toLowerCase().includes("work together")) return "email";
+  return "external";
+}
+
+function SocialIcon({ name, title }: { name: string; title?: string }) {
+  const BrandIcon = iconMap[resolveIconName(name, title)] ?? FiExternalLink;
+  return <BrandIcon aria-hidden="true" focusable="false" />;
+}
 
 const themes: Theme[] = [
   { id: "midnight", name: "Midnight", bg: "#0a0a0a", text: "#ffffff", button: "#202020", buttonText: "#ffffff" },
@@ -64,9 +116,9 @@ const themes: Theme[] = [
 ];
 
 const starterLinks: LinkItem[] = [
-  { id: 1, title: "Instagram", url: "https://instagram.com/", icon: "◎", color: "#e1306c", enabled: true, clicks: 24 },
-  { id: 2, title: "My latest project", url: "https://example.com/project", icon: "↗", color: "#171717", enabled: true, clicks: 11 },
-  { id: 3, title: "Let’s work together", url: "mailto:hello@example.com", icon: "✦", color: "#7c3aed", enabled: true, clicks: 7 },
+  { id: 1, title: "Instagram", url: "https://instagram.com/", icon: "instagram", color: "#e1306c", enabled: true, clicks: 24 },
+  { id: 2, title: "My latest project", url: "https://example.com/project", icon: "external", color: "#171717", enabled: true, clicks: 11 },
+  { id: 3, title: "Let’s work together", url: "mailto:hello@example.com", icon: "email", color: "#7c3aed", enabled: true, clicks: 7 },
 ];
 
 const navItems = [
@@ -122,7 +174,7 @@ function Onboarding({
     });
     const extras = extraLinks
       .filter(Boolean)
-      .map((url, index) => ({ id: Date.now() + 100 + index, title: `My link ${index + 1}`, url, icon: "↗", color: "#171717", enabled: true, clicks: 0 }));
+      .map((url, index) => ({ id: Date.now() + 100 + index, title: `My link ${index + 1}`, url, icon: "external", color: "#171717", enabled: true, clicks: 0 }));
     onComplete({ theme, links: [...selectedLinks, ...extras], name, bio });
   };
 
@@ -170,7 +222,7 @@ function Onboarding({
                     className={`platform-card ${selected ? "selected" : ""}`}
                     onClick={() => setSelectedPlatforms((items) => selected ? items.filter((i) => i !== platform.id) : items.length < 5 ? [...items, platform.id] : items)}
                   >
-                    <span style={{ background: platform.color }}>{platform.icon}</span>
+                    <span style={{ background: platform.brandBg ?? platform.color }}><SocialIcon name={platform.icon} /></span>
                     <strong>{platform.name}</strong>
                     {selected && <b>✓</b>}
                   </button>
@@ -193,7 +245,7 @@ function Onboarding({
                 const platform = platforms.find((p) => p.id === id)!;
                 return (
                   <label className="url-row" key={id}>
-                    <span style={{ background: platform.color }}>{platform.icon}</span>
+                    <span style={{ background: platform.brandBg ?? platform.color }}><SocialIcon name={platform.icon} /></span>
                     <input value={platformValues[id] ?? ""} onChange={(e) => setPlatformValues({ ...platformValues, [id]: e.target.value })} placeholder={platform.placeholder} />
                   </label>
                 );
@@ -251,7 +303,7 @@ function PublicPreview({ theme, name, bio, links }: { theme: Theme; name: string
       <h2>@{name || "yourname"}</h2>
       <p>{bio || "Your story, your links, all in one place."}</p>
       <div className="preview-socials">
-        {links.slice(0, 5).map((link) => <span key={link.id}>{link.icon}</span>)}
+        {links.slice(0, 5).map((link) => <span key={link.id}><SocialIcon name={link.icon} title={link.title} /></span>)}
       </div>
       <div className="preview-links">
         {links.filter((link) => link.enabled).map((link) => (
@@ -261,7 +313,7 @@ function PublicPreview({ theme, name, bio, links }: { theme: Theme; name: string
             style={{ background: theme.button, color: theme.buttonText, borderColor: theme.pattern === "outline" ? theme.text : "transparent" }}
             onClick={(e) => link.url === "#" && e.preventDefault()}
           >
-            <span>{link.icon}</span><strong>{link.title || "Untitled link"}</strong><b>•••</b>
+            <span><SocialIcon name={link.icon} title={link.title} /></span><strong>{link.title || "Untitled link"}</strong><b>•••</b>
           </a>
         ))}
       </div>
@@ -293,7 +345,7 @@ function Dashboard({
 
   const addLink = () => {
     const id = ++nextId.current;
-    setLinks((items) => [{ id, title: "New link", url: "https://", icon: "↗", color: "#171717", enabled: true, clicks: 0 }, ...items]);
+    setLinks((items) => [{ id, title: "New link", url: "https://", icon: "external", color: "#171717", enabled: true, clicks: 0 }, ...items]);
   };
 
   const updateLink = (id: number, update: Partial<LinkItem>) => {
@@ -354,7 +406,7 @@ function Dashboard({
               <div>
                 <input value={name} onChange={(e) => setName(e.target.value.replace(/\s/g, "").slice(0, 24))} aria-label="Profile username" />
                 <input value={bio} onChange={(e) => setBio(e.target.value.slice(0, 160))} placeholder="Add a short bio" aria-label="Profile bio" />
-                <div className="profile-networks">{links.slice(0, 5).map((link) => <span key={link.id} style={{ color: link.color }}>{link.icon}</span>)}<button>+</button></div>
+                <div className="profile-networks">{links.slice(0, 5).map((link) => <span key={link.id} style={{ color: link.color }}><SocialIcon name={link.icon} title={link.title} /></span>)}<button>+</button></div>
               </div>
             </section>
 
@@ -375,7 +427,7 @@ function Dashboard({
                       <input value={link.url} onChange={(e) => updateLink(link.id, { url: e.target.value })} />
                     </label>
                     <div className="link-tools">
-                      <span style={{ color: link.color }}>{link.icon}</span>
+                      <span style={{ color: link.color }}><SocialIcon name={link.icon} title={link.title} /></span>
                       <button title="Add thumbnail">▧</button>
                       <button title="Feature link">☆</button>
                       <button title="Schedule">◷</button>
