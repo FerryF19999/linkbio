@@ -158,6 +158,12 @@ const navItems = [
   ["Insights", "▥"],
 ];
 
+const growItems = [
+  ["Share", "↗"],
+  ["Email capture", "✉"],
+  ["QR code", "▦"],
+];
+
 function ThemePreview({ theme, selected, onClick, compact = false }: { theme: Theme; selected?: boolean; onClick?: () => void; compact?: boolean }) {
   return (
     <button
@@ -423,6 +429,7 @@ function Dashboard({
   const [editToken, setEditToken] = useState("");
   const [showArchive, setShowArchive] = useState(false);
   const [mobilePreview, setMobilePreview] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toast, setToast] = useState("");
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
@@ -561,9 +568,9 @@ function Dashboard({
             </button>
           ))}
           <p>GROW</p>
-          {["Share", "Email capture", "QR code"].map((item, index) => (
+          {growItems.map(([item, icon]) => (
             <button key={item} className={activeNav === item ? "active" : ""} onClick={() => setActiveNav(item)}>
-              <span>{["↗", "✉", "▦"][index]}</span>{item}
+              <span>{icon}</span>{item}
             </button>
           ))}
         </nav>
@@ -576,6 +583,33 @@ function Dashboard({
         <button className="reset-link" onClick={onReset}>↺ Restart onboarding</button>
       </aside>
 
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+        {[["Links", "⌁"], ["Design", "✦"], ["Share", "↗"], ["QR code", "▦"]].map(([item, icon]) => (
+          <button key={item} className={activeNav === item ? "active" : ""} onClick={() => { setActiveNav(item); setMobileMenuOpen(false); }}>
+            <span>{icon}</span><b>{item === "QR code" ? "QR" : item}</b>
+          </button>
+        ))}
+        <button className={mobileMenuOpen ? "active" : ""} onClick={() => setMobileMenuOpen((open) => !open)} aria-expanded={mobileMenuOpen}>
+          <span>•••</span><b>More</b>
+        </button>
+      </nav>
+
+      {mobileMenuOpen && (
+        <div className="mobile-menu-backdrop" onClick={() => setMobileMenuOpen(false)}>
+          <section className="mobile-menu-sheet" onClick={(event) => event.stopPropagation()} aria-label="All tools">
+            <div><strong>All tools</strong><button onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">×</button></div>
+            <nav>
+              {[...navItems, ...growItems].map(([item, icon]) => (
+                <button key={item} className={activeNav === item ? "active" : ""} onClick={() => { setActiveNav(item); setMobileMenuOpen(false); }}>
+                  <span>{icon}</span><b>{item}</b>
+                </button>
+              ))}
+            </nav>
+            <button className="mobile-reset" onClick={() => { setMobileMenuOpen(false); onReset(); }}>↺ Restart onboarding</button>
+          </section>
+        </div>
+      )}
+
       <section className="editor">
         <header className="editor-header">
           <div>
@@ -583,8 +617,8 @@ function Dashboard({
             <h1>{activeNav}</h1>
           </div>
           <div className="header-actions">
-            <button onClick={() => setMobilePreview(true)}>◉ Preview</button>
-            <button onClick={copyProfile}>↗ Share</button>
+            <button onClick={() => setMobilePreview(true)}><span>◉</span><b>Preview</b></button>
+            <button onClick={copyProfile}><span>↗</span><b>Share</b></button>
           </div>
         </header>
 
