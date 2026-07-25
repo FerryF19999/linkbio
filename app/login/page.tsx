@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ADMIN_EMAIL, getChatGPTUser, isAdminUser } from "../chatgpt-auth";
+import { getChatGPTUser, isAdminUser } from "../chatgpt-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +24,8 @@ export default async function LoginPage() {
             </div>
           )}
           <div className="admin-account-field">
-            <label htmlFor="admin-email">Admin account</label>
-            <input id="admin-email" value={ADMIN_EMAIL} readOnly />
+            <label htmlFor="admin-account">Account type</label>
+            <input id="admin-account" value="Registered NEMU administrator" readOnly />
           </div>
           {denied ? (
             <Link className="admin-switch-account" href="/signout-with-chatgpt?return_to=/login">

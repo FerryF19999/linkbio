@@ -1,13 +1,12 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { env } from "cloudflare:workers";
 
 export type ChatGPTUser = {
   displayName: string;
   email: string;
   fullName: string | null;
 };
-
-export const ADMIN_EMAIL = "openclawid6@gmail.com";
 
 const USER_EMAIL_HEADER = "oai-authenticated-user-email";
 const USER_FULL_NAME_HEADER = "oai-authenticated-user-full-name";
@@ -47,7 +46,11 @@ export async function requireChatGPTUser(
 }
 
 export function isAdminUser(user: ChatGPTUser | null): user is ChatGPTUser {
-  return user?.email.toLowerCase() === ADMIN_EMAIL;
+  const adminEmail = (
+    env as unknown as { ADMIN_EMAIL?: string }
+  ).ADMIN_EMAIL?.trim().toLowerCase();
+
+  return Boolean(adminEmail) && user?.email.toLowerCase() === adminEmail;
 }
 
 export async function requireAdminUser(
