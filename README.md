@@ -8,12 +8,12 @@ dashboard, and Cloudflare D1 persistence.
 The full application runs on Cloudflare/Sites because its authentication and
 database use Cloudflare runtime bindings.
 
-Vercel is configured as a lightweight reverse proxy to the production
-application, so the public `vercel.app` address stays visible. This avoids a
-misleading `.next` build that would deploy without working authentication or
-persistence.
+Vercel is configured as the public gateway for the production application, so
+all public pages, profile links, API calls, and authentication handoffs use the
+same `vercel.app` address. This avoids a misleading `.next` build that would
+deploy without working authentication or persistence.
 
-Production: <https://linkspark-nemu.openclawid6.chatgpt.site>
+Production: <https://linkbio-one-amber.vercel.app>
 
 ## Prerequisites
 

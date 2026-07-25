@@ -6,11 +6,11 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/"
+      "destination": "/api/proxy?__path="
     },
     {
       "source": "/:path*",
-      "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/:path*"
+      "destination": "/api/proxy?__path=:path*"
     }
   ]
 }

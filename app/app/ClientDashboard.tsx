@@ -448,7 +448,7 @@ function Dashboard({
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
-  const publicUrl = `https://linkspark-nemu.openclawid6.chatgpt.site/${publicId || "profile"}`;
+  const publicUrl = `https://linkbio-one-amber.vercel.app/${publicId || "profile"}`;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -867,7 +867,7 @@ function Dashboard({
 
       <aside className={`preview-pane ${mobilePreview ? "open" : ""}`}>
         <div className="preview-pane-top">
-          <button onClick={copyProfile}>linkspark-nemu.openclawid6.chatgpt.site/{publicId ? `${publicId.slice(0, 10)}…` : "profile"}　↗</button>
+          <button onClick={copyProfile}>linkbio-one-amber.vercel.app/{publicId ? `${publicId.slice(0, 10)}…` : "profile"}　↗</button>
           <button className="close-preview" onClick={() => setMobilePreview(false)}>×</button>
         </div>
         <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} profileImage={profileImage} products={products} emailCapture={emailCapture} onLinkClick={recordClick} onSubscribe={addSubscriber} /></div>
