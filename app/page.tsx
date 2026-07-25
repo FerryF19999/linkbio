@@ -334,7 +334,7 @@ function Onboarding({
         <button className="primary-button" onClick={next} disabled={step === 1 && selectedPlatforms.length === 0}>
           {step === 3 ? "Build my page" : "Continue"} <b>→</b>
         </button>
-        <span>Made for your next click</span>
+        <span>Powered by NEMU AI</span>
       </footer>
     </main>
   );
@@ -401,7 +401,7 @@ function PublicPreview({
           <div><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>
         </form>
       )}
-      <div className="preview-brand">link<span>spark✦</span></div>
+      <div className="preview-brand"><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div>
     </div>
   );
 }
@@ -545,7 +545,7 @@ function Dashboard({
     const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" });
     const anchor = document.createElement("a");
     anchor.href = URL.createObjectURL(blob);
-    anchor.download = `${name || "linkspark"}-qr.svg`;
+    anchor.download = `${name || "nemu-link-bio"}-qr.svg`;
     anchor.click();
     URL.revokeObjectURL(anchor.href);
   };
@@ -559,6 +559,10 @@ function Dashboard({
       </div>
 
       <aside className="sidebar">
+        <div className="brand-lockup">
+          <span>N</span>
+          <div><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div>
+        </div>
         <button className="account"><span>NF</span><strong>{name || "creator"}</strong><b>⌄</b></button>
         <nav>
           <p>MY PAGE</p>

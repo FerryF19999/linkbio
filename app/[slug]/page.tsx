@@ -159,7 +159,7 @@ export default function PublicProfilePage() {
           {!joined && <div><input type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>}
         </form>
       )}
-      <footer>link<span>spark✦</span></footer>
+      <footer><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></footer>
     </main>
   );
 }

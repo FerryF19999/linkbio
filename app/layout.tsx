@@ -8,19 +8,17 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "LinkSpark — Your story, one link",
-  description: "Create a beautiful link-in-bio page, share everything you make, and grow your audience.",
+  title: "NEMU Link Bio — Powered by NEMU AI",
+  description: "Create a beautiful NEMU Link Bio page, share everything you make, and grow your audience.",
   openGraph: {
-    title: "LinkSpark — Your story, one link",
-    description: "Create a beautiful link-in-bio page and share everything you make.",
+    title: "NEMU Link Bio — Powered by NEMU AI",
+    description: "One beautiful link for everything you create.",
     type: "website",
-    images: [{ url: "/og.png", width: 1730, height: 917, alt: "LinkSpark link-in-bio builder" }],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "LinkSpark — Your story, one link",
-    description: "Create a beautiful link-in-bio page and share everything you make.",
-    images: ["/og.png"],
+    card: "summary",
+    title: "NEMU Link Bio — Powered by NEMU AI",
+    description: "One beautiful link for everything you create.",
   },
   icons: {
     icon: "/favicon.svg",
