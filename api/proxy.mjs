@@ -30,13 +30,9 @@ function publicOrigin(request) {
 function rewriteUpstream(value, request) {
   if (!value) return value;
   const publicBase = publicOrigin(request);
-  return String(value)
-    .replaceAll(UPSTREAM_ORIGIN, publicBase)
-    .replaceAll(encodeURIComponent(UPSTREAM_ORIGIN), encodeURIComponent(publicBase))
-    .replaceAll(
-      encodeURIComponent(UPSTREAM_ORIGIN).toLowerCase(),
-      encodeURIComponent(publicBase).toLowerCase(),
-    );
+  // Rewrite visible links, but keep percent-encoded OAuth callback URLs intact.
+  // The dispatch-owned ChatGPT sign-in flow validates that callback origin.
+  return String(value).replaceAll(UPSTREAM_ORIGIN, publicBase);
 }
 
 function requestHeaders(request) {
