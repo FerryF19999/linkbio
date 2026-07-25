@@ -55,6 +55,14 @@ type Subscriber = {
   joined: string;
 };
 
+type WaitlistEntry = {
+  id: string;
+  name: string;
+  email: string;
+  source: string;
+  createdAt: string;
+};
+
 type ProfileData = {
   theme: string;
   links: LinkItem[];
@@ -156,6 +164,7 @@ const navItems = [
   ["Shop", "▱"],
   ["Design", "✦"],
   ["Audience", "♙"],
+  ["Waitlist", "◷"],
   ["Insights", "▥"],
 ];
 
@@ -432,6 +441,10 @@ function Dashboard({
   const [mobilePreview, setMobilePreview] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistError, setWaitlistError] = useState("");
+  const [waitlistVersion, setWaitlistVersion] = useState(0);
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
@@ -479,6 +492,33 @@ function Dashboard({
     }, 700);
     return () => window.clearTimeout(syncTimer);
   }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture, publicId, editToken]);
+
+  useEffect(() => {
+    if (activeNav !== "Waitlist") return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setWaitlistLoading(true);
+      setWaitlistError("");
+
+      void fetch("/api/waitlist")
+        .then(async (response) => {
+          const result = (await response.json()) as { entries?: WaitlistEntry[]; error?: string };
+          if (!response.ok) throw new Error(result.error || "Unable to load waitlist.");
+          if (!cancelled) setWaitlistEntries(result.entries ?? []);
+        })
+        .catch((error) => {
+          if (!cancelled) setWaitlistError(error instanceof Error ? error.message : "Unable to load waitlist.");
+        })
+        .finally(() => {
+          if (!cancelled) setWaitlistLoading(false);
+        });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeNav, waitlistVersion]);
 
   const addLink = () => {
     const id = ++nextId.current;
@@ -547,6 +587,26 @@ function Dashboard({
     const anchor = document.createElement("a");
     anchor.href = URL.createObjectURL(blob);
     anchor.download = `${name || "nemu-link-bio"}-qr.svg`;
+    anchor.click();
+    URL.revokeObjectURL(anchor.href);
+  };
+
+  const downloadWaitlist = () => {
+    const escapeCell = (value: string) => `"${value.replaceAll('"', '""')}"`;
+    const rows = [
+      ["Name", "Email", "Joined", "Source"],
+      ...waitlistEntries.map((entry) => [
+        entry.name,
+        entry.email,
+        new Date(entry.createdAt).toLocaleString("id-ID"),
+        entry.source,
+      ]),
+    ];
+    const csv = rows.map((row) => row.map(escapeCell).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = `nemu-waitlist-${new Date().toISOString().slice(0, 10)}.csv`;
     anchor.click();
     URL.revokeObjectURL(anchor.href);
   };
@@ -745,6 +805,35 @@ function Dashboard({
           </div>
         )}
 
+        {activeNav === "Waitlist" && (
+          <div className="utility-panel">
+            <div className="section-title">
+              <div><h2>Early-access waitlist</h2><p>People who submitted the form on your landing page.</p></div>
+              <span>{waitlistEntries.length} submissions</span>
+            </div>
+            <div className="waitlist-actions">
+              <button onClick={() => setWaitlistVersion((value) => value + 1)} disabled={waitlistLoading}>
+                {waitlistLoading ? "Refreshing..." : "Refresh"}
+              </button>
+              <button onClick={downloadWaitlist} disabled={waitlistEntries.length === 0}>Download CSV</button>
+            </div>
+            {waitlistError && <p className="waitlist-admin-error">{waitlistError}</p>}
+            <div className="waitlist-table">
+              <div><strong>Name</strong><strong>Email</strong><strong>Joined</strong><strong>Source</strong></div>
+              {waitlistEntries.map((entry) => (
+                <div key={entry.id}>
+                  <strong>{entry.name}</strong>
+                  <span>{entry.email}</span>
+                  <span>{new Date(entry.createdAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</span>
+                  <span>{entry.source}</span>
+                </div>
+              ))}
+              {!waitlistLoading && waitlistEntries.length === 0 && !waitlistError && <p>No waitlist submissions yet.</p>}
+              {waitlistLoading && waitlistEntries.length === 0 && <p>Loading submissions...</p>}
+            </div>
+          </div>
+        )}
+
         {activeNav === "Email capture" && (
           <div className="utility-panel email-panel">
             <div className="feature-toggle">
@@ -771,7 +860,7 @@ function Dashboard({
           </div>
         )}
 
-        {!["Links", "Design", "Insights", "Shop", "Audience", "Email capture", "Share", "QR code"].includes(activeNav) && (
+        {!["Links", "Design", "Insights", "Shop", "Audience", "Waitlist", "Email capture", "Share", "QR code"].includes(activeNav) && (
           <div className="empty-panel"><span>✦</span><h2>{activeNav} is ready for your next idea.</h2><p>This demo focuses on onboarding, link management, themes, and live preview.</p><button onClick={() => setActiveNav("Links")}>Back to links</button></div>
         )}
       </section>

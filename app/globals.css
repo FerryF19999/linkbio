@@ -311,6 +311,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .landing-hero h1 { max-width: 650px; margin: 0; font-size: clamp(58px,6vw,92px); line-height: .92; letter-spacing: -.07em; }
 .landing-hero h1 em { color: #7626ee; font-style: normal; }
 .landing-hero-copy > p { max-width: 540px; margin: 28px 0; font-size: 19px; line-height: 1.55; color: #5e5e58; }
+.landing-waitlist { width: min(580px,100%); }
+.landing-waitlist form { background: #fff; border: 1px solid #e0ded8; border-radius: 20px; padding: 8px; display: grid; grid-template-columns: .8fr 1.15fr auto; gap: 7px; box-shadow: 0 16px 45px rgba(46,28,75,.1); }
+.landing-waitlist label { min-width: 0; padding: 6px 10px; border-right: 1px solid #e5e3de; }
+.landing-waitlist label span { display: block; color: #86867f; font-size: 8px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; margin-bottom: 3px; }
+.landing-waitlist input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #111; font: inherit; font-size: 12px; padding: 0; }
+.landing-waitlist button { border: 0; border-radius: 13px; background: #111; color: #fff; min-height: 52px; padding: 0 16px; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.landing-waitlist button:disabled { cursor: wait; opacity: .65; }
+.landing-waitlist button span { margin-left: 8px; }
+.landing-waitlist-meta { display: flex; justify-content: space-between; color: #898982; font-size: 9px; margin: 9px 4px 0; }
+.landing-waitlist-meta span:first-child { color: #6f25e8; font-weight: 750; }
+.waitlist-message { border-radius: 11px; margin: 10px 0 0; padding: 10px 12px; font-size: 11px; line-height: 1.4; }
+.waitlist-message.success { color: #146c35; background: #e9f9ee; }
+.waitlist-message.error { color: #99281e; background: #fff0ee; }
 .landing-hero-actions { display: flex; align-items: center; gap: 22px; }
 .landing-hero-actions > a { text-decoration: none; font-weight: 750; }
 .landing-hero-actions > a:first-child { background: #111; color: #fff; border-radius: 99px; padding: 16px 22px; box-shadow: 0 12px 30px rgba(0,0,0,.13); }
@@ -429,6 +442,17 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .admin-account-field label { display: block; color: #74746d; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .09em; margin: 0 0 7px 3px; }
 .admin-account-field input { width: 100%; min-height: 56px; border: 1px solid #d9d8d2; border-radius: 14px; background: #f8f8f5; color: #222; padding: 0 16px; font: inherit; font-size: 14px; }
 .admin-switch-account { min-height: 58px; border-radius: 14px; background: #111; color: #fff; padding: 0 18px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; font-weight: 750; font-size: 14px; }
+.waitlist-actions { display: flex; justify-content: flex-end; gap: 8px; margin: -8px 0 15px; }
+.waitlist-actions button { border: 1px solid #dcdcd6; background: #fff; border-radius: 10px; padding: 9px 13px; font-weight: 700; cursor: pointer; }
+.waitlist-actions button:last-child { background: #111; color: #fff; border-color: #111; }
+.waitlist-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.waitlist-table { border: 1px solid #e2e2dd; border-radius: 18px; overflow: hidden; background: #fff; }
+.waitlist-table > div { display: grid; grid-template-columns: .8fr 1.2fr 150px 80px; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #eee; align-items: center; font-size: 12px; }
+.waitlist-table > div:first-child { background: #f7f7f4; color: #777; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+.waitlist-table > div:not(:first-child) > strong { font-size: 12px; }
+.waitlist-table > div:not(:first-child) > span { color: #666; overflow: hidden; text-overflow: ellipsis; }
+.waitlist-table > p { text-align: center; color: #777; padding: 38px 20px; }
+.waitlist-admin-error { color: #92261d; background: #fff0ee; border-radius: 12px; padding: 12px 14px; font-size: 12px; }
 
 @media (min-width: 720px) {
   body:has(.standalone-profile-shell) { background: #eceef2; }
@@ -538,6 +562,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
   .landing-hero { width: calc(100% - 28px); padding: 50px 0 30px; }
   .landing-hero h1 { font-size: clamp(48px,15vw,68px); }
   .landing-hero-copy > p { font-size: 16px; margin: 22px auto; }
+  .landing-waitlist { margin-inline: auto; text-align: left; }
+  .landing-waitlist form { grid-template-columns: 1fr; padding: 9px; }
+  .landing-waitlist label { border-right: 0; border-bottom: 1px solid #e5e3de; padding: 9px 10px 12px; }
+  .landing-waitlist input { font-size: 14px; }
+  .landing-waitlist button { min-height: 55px; }
+  .landing-waitlist-meta { font-size: 8px; }
   .landing-hero-actions { flex-direction: column; gap: 12px; }
   .landing-hero-actions > a:first-child { width: 100%; max-width: 310px; padding: 15px 18px; }
   .landing-trust { margin-top: 28px; }
@@ -604,6 +634,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
   .manual-subscriber button { min-height: 43px; }
   .audience-table { overflow-x: auto; }
   .audience-table > div { min-width: 440px; }
+  .waitlist-table { overflow-x: auto; }
+  .waitlist-table > div { min-width: 650px; }
+  .waitlist-actions { justify-content: stretch; }
+  .waitlist-actions button { flex: 1; }
   .feature-toggle { padding: 17px; gap: 10px; }
   .feature-toggle > div > span { width: 42px; height: 42px; flex: 0 0 auto; }
   .feature-toggle h2 { font-size: 17px; }

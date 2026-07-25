@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getChatGPTUser, isAdminUser } from "./chatgpt-auth";
+import WaitlistForm from "./WaitlistForm";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export default async function LandingPage() {
           <a href="#features">Features</a>
           <a href="#showcase">Showcase</a>
           <Link className="landing-login-link" href={isAdmin ? "/app" : "/login"}>{isAdmin ? "Dashboard" : "Log in"}</Link>
-          <Link className="landing-nav-cta" href={isAdmin ? "/app" : "/login"}>{isAdmin ? "Open app" : "Create your link"}</Link>
+          <Link className="landing-nav-cta" href={isAdmin ? "/app" : "#waitlist"}>{isAdmin ? "Open app" : "Join waitlist"}</Link>
         </div>
       </nav>
 
@@ -29,11 +30,15 @@ export default async function LandingPage() {
         <div className="landing-hero-copy">
           <span className="landing-kicker">YOUR INTERNET, BEAUTIFULLY ORGANIZED</span>
           <h1>Everything you are.<br /><em>One NEMU link.</em></h1>
-          <p>Build a beautiful link-in-bio page for your content, products, community, and next big idea.</p>
-          <div className="landing-hero-actions">
-            <Link href={isAdmin ? "/app" : "/login"}>{isAdmin ? "Go to dashboard" : "Start building free"} <span>→</span></Link>
-            <a href="#showcase">See how it works</a>
-          </div>
+          <p>Join the early-access list for a beautiful link-in-bio page built for your content, products, community, and next big idea.</p>
+          {isAdmin ? (
+            <div className="landing-hero-actions">
+              <Link href="/app">Go to dashboard <span>→</span></Link>
+              <a href="#showcase">See how it works</a>
+            </div>
+          ) : (
+            <WaitlistForm />
+          )}
           <div className="landing-trust"><span>✦</span><p>No design skills needed<br /><strong>Live in minutes</strong></p></div>
         </div>
 
@@ -73,7 +78,7 @@ export default async function LandingPage() {
 
       <section className="landing-final-cta">
         <span>✦</span><h2>Your audience is already looking.<br />Give them one place to find you.</h2>
-        <Link href={isAdmin ? "/app" : "/login"}>{isAdmin ? "Open dashboard" : "Create your NEMU Link Bio"} →</Link>
+        <Link href={isAdmin ? "/app" : "#waitlist"}>{isAdmin ? "Open dashboard" : "Join the NEMU waitlist"} →</Link>
         <small>Powered by NEMU AI</small>
       </section>
 
