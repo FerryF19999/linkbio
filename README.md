@@ -1,8 +1,18 @@
-# vinext-starter
+# NEMU Link Bio
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A responsive link-in-bio builder with a public waitlist, an admin-only
+dashboard, and Cloudflare D1 persistence.
+
+## Deployment
+
+The full application runs on Cloudflare/Sites because its authentication and
+database use Cloudflare runtime bindings.
+
+Vercel is configured as a lightweight redirect to the production application.
+This avoids a misleading `.next` build that would deploy without working
+authentication or persistence.
+
+Production: <https://linkspark-nemu.openclawid6.chatgpt.site>
 
 ## Prerequisites
 
