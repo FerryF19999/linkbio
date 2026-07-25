@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import { FiExternalLink, FiGlobe, FiMail } from "react-icons/fi";
+import QRCode from "react-qr-code";
 import {
   SiApplemusic,
   SiFacebook,
@@ -37,6 +38,33 @@ type LinkItem = {
   color: string;
   enabled: boolean;
   clicks: number;
+  kind?: "link" | "collection";
+};
+
+type ProductItem = {
+  id: number;
+  title: string;
+  price: string;
+  url: string;
+  enabled: boolean;
+};
+
+type Subscriber = {
+  email: string;
+  joined: string;
+};
+
+type ProfileData = {
+  theme: string;
+  links: LinkItem[];
+  name: string;
+  bio: string;
+  complete: boolean;
+  profileImage?: string;
+  archive?: LinkItem[];
+  products?: ProductItem[];
+  subscribers?: Subscriber[];
+  emailCapture?: boolean;
 };
 
 type Theme = {
@@ -155,7 +183,7 @@ function ThemePreview({ theme, selected, onClick, compact = false }: { theme: Th
 function Onboarding({
   onComplete,
 }: {
-  onComplete: (data: { theme: string; links: LinkItem[]; name: string; bio: string }) => void;
+  onComplete: (data: { theme: string; links: LinkItem[]; name: string; bio: string; profileImage: string }) => void;
 }) {
   const [step, setStep] = useState(0);
   const [theme, setTheme] = useState("sunset");
@@ -164,6 +192,15 @@ function Onboarding({
   const [extraLinks, setExtraLinks] = useState(["", "", ""]);
   const [name, setName] = useState("nemuai");
   const [bio, setBio] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const onboardingFileRef = useRef<HTMLInputElement>(null);
+
+  const loadProfileImage = (file?: File) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => setProfileImage(String(reader.result));
+    reader.readAsDataURL(file);
+  };
 
   const finish = () => {
     const selectedLinks = selectedPlatforms.map((id, index) => {
@@ -175,7 +212,7 @@ function Onboarding({
     const extras = extraLinks
       .filter(Boolean)
       .map((url, index) => ({ id: Date.now() + 100 + index, title: `My link ${index + 1}`, url, icon: "external", color: "#171717", enabled: true, clicks: 0 }));
-    onComplete({ theme, links: [...selectedLinks, ...extras], name, bio });
+    onComplete({ theme, links: [...selectedLinks, ...extras], name, bio, profileImage });
   };
 
   const next = () => {
@@ -268,9 +305,10 @@ function Onboarding({
               <h1>Add profile details</h1>
               <p>Add your profile image, display name, and a short bio.</p>
             </div>
-            <button type="button" className="avatar-uploader" aria-label="Upload profile image">
-              <span>NF</span><b>+</b>
+            <button type="button" className={`avatar-uploader ${profileImage ? "has-image" : ""}`} style={profileImage ? { backgroundImage: `url(${profileImage})` } : undefined} aria-label="Upload profile image" onClick={() => onboardingFileRef.current?.click()}>
+              {profileImage ? "" : <span>NF</span>}<b>+</b>
             </button>
+            <input ref={onboardingFileRef} className="visually-hidden" type="file" accept="image/*" onChange={(event) => loadProfileImage(event.target.files?.[0])} />
             <label className="floating-field">
               <span>Display name</span>
               <input value={name} onChange={(e) => setName(e.target.value)} />
@@ -295,28 +333,67 @@ function Onboarding({
   );
 }
 
-function PublicPreview({ theme, name, bio, links }: { theme: Theme; name: string; bio: string; links: LinkItem[] }) {
+function PublicPreview({
+  theme,
+  name,
+  bio,
+  links,
+  profileImage,
+  products = [],
+  emailCapture = false,
+  onLinkClick,
+  onSubscribe,
+}: {
+  theme: Theme;
+  name: string;
+  bio: string;
+  links: LinkItem[];
+  profileImage?: string;
+  products?: ProductItem[];
+  emailCapture?: boolean;
+  onLinkClick?: (id: number) => void;
+  onSubscribe?: (email: string) => void;
+}) {
+  const [email, setEmail] = useState("");
   return (
     <div className={`public-preview pattern-${theme.pattern ?? "none"}`} style={{ background: theme.bg, color: theme.text }}>
       <button className="preview-share" aria-label="Share profile">↗</button>
-      <div className="preview-avatar">NF</div>
+      <div className={`preview-avatar ${profileImage ? "has-image" : ""}`} style={profileImage ? { backgroundImage: `url(${profileImage})` } : undefined}>{profileImage ? "" : "NF"}</div>
       <h2>@{name || "yourname"}</h2>
       <p>{bio || "Your story, your links, all in one place."}</p>
       <div className="preview-socials">
         {links.slice(0, 5).map((link) => <span key={link.id}><SocialIcon name={link.icon} title={link.title} /></span>)}
       </div>
       <div className="preview-links">
-        {links.filter((link) => link.enabled).map((link) => (
-          <a
-            key={link.id}
-            href={link.url || "#"}
-            style={{ background: theme.button, color: theme.buttonText, borderColor: theme.pattern === "outline" ? theme.text : "transparent" }}
-            onClick={(e) => link.url === "#" && e.preventDefault()}
-          >
-            <span><SocialIcon name={link.icon} title={link.title} /></span><strong>{link.title || "Untitled link"}</strong><b>•••</b>
+        {links.filter((link) => link.enabled).map((link) => link.kind === "collection" ? (
+          <h3 className="preview-collection" key={link.id}>{link.title || "Collection"}</h3>
+        ) : (
+            <a
+              key={link.id}
+              href={link.url || "#"}
+              target={link.url?.startsWith("http") ? "_blank" : undefined}
+              rel="noreferrer"
+              style={{ background: theme.button, color: theme.buttonText, borderColor: theme.pattern === "outline" ? theme.text : "transparent" }}
+              onClick={(event) => {
+                if (!link.url || link.url === "https://" || link.url === "#") event.preventDefault();
+                onLinkClick?.(link.id);
+              }}
+            >
+              <span><SocialIcon name={link.icon} title={link.title} /></span><strong>{link.title || "Untitled link"}</strong><b>•••</b>
+            </a>
+          ))}
+        {products.filter((product) => product.enabled).map((product) => (
+          <a key={product.id} href={product.url || "#"} target="_blank" rel="noreferrer" className="product-preview-link" style={{ background: theme.button, color: theme.buttonText, borderColor: theme.pattern === "outline" ? theme.text : "transparent" }}>
+            <span>▣</span><strong>{product.title}<small>{product.price}</small></strong><b>↗</b>
           </a>
         ))}
       </div>
+      {emailCapture && (
+        <form className="preview-email" onSubmit={(event) => { event.preventDefault(); if (email.includes("@")) { onSubscribe?.(email); setEmail(""); } }}>
+          <strong>Stay in the loop</strong>
+          <div><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>
+        </form>
+      )}
       <div className="preview-brand">link<span>spark✦</span></div>
     </div>
   );
@@ -326,7 +403,7 @@ function Dashboard({
   initial,
   onReset,
 }: {
-  initial: { theme: string; links: LinkItem[]; name: string; bio: string };
+  initial: Omit<ProfileData, "complete">;
   onReset: () => void;
 }) {
   const [activeNav, setActiveNav] = useState("Links");
@@ -334,14 +411,35 @@ function Dashboard({
   const [links, setLinks] = useState<LinkItem[]>(initial.links.length ? initial.links : starterLinks);
   const [name, setName] = useState(initial.name || "nemuai");
   const [bio, setBio] = useState(initial.bio);
+  const [profileImage, setProfileImage] = useState(initial.profileImage ?? "");
+  const [archive, setArchive] = useState<LinkItem[]>(initial.archive ?? []);
+  const [products, setProducts] = useState<ProductItem[]>(initial.products ?? [
+    { id: 101, title: "Creator Starter Pack", price: "Rp99.000", url: "https://example.com", enabled: true },
+  ]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>(initial.subscribers ?? []);
+  const [emailCapture, setEmailCapture] = useState(initial.emailCapture ?? false);
+  const [showArchive, setShowArchive] = useState(false);
   const [mobilePreview, setMobilePreview] = useState(false);
   const [toast, setToast] = useState("");
   const nextId = useRef(10_000);
+  const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
+  const publicUrl = "https://linkspark-nemu.openclawid6.chatgpt.site";
 
   useEffect(() => {
-    localStorage.setItem("linkspark-profile", JSON.stringify({ theme: themeId, links, name, bio, complete: true }));
-  }, [themeId, links, name, bio]);
+    localStorage.setItem("linkspark-profile", JSON.stringify({
+      theme: themeId,
+      links,
+      name,
+      bio,
+      profileImage,
+      archive,
+      products,
+      subscribers,
+      emailCapture,
+      complete: true,
+    }));
+  }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture]);
 
   const addLink = () => {
     const id = ++nextId.current;
@@ -352,10 +450,66 @@ function Dashboard({
     setLinks((items) => items.map((item) => item.id === id ? { ...item, ...update } : item));
   };
 
+  const addCollection = () => {
+    const id = ++nextId.current;
+    setLinks((items) => [...items, { id, title: "New collection", url: "#", icon: "external", color: "#7c2cff", enabled: true, clicks: 0, kind: "collection" }]);
+  };
+
+  const archiveLink = (id: number) => {
+    const item = links.find((link) => link.id === id);
+    if (!item) return;
+    setArchive((items) => [item, ...items]);
+    setLinks((items) => items.filter((link) => link.id !== id));
+    setToast("Link moved to archive");
+    setTimeout(() => setToast(""), 1800);
+  };
+
+  const moveLink = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= links.length) return;
+    setLinks((items) => {
+      const next = [...items];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  const uploadProfileImage = (file?: File) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => setProfileImage(String(reader.result));
+    reader.readAsDataURL(file);
+  };
+
+  const recordClick = (id: number) => {
+    setLinks((items) => items.map((item) => item.id === id ? { ...item, clicks: item.clicks + 1 } : item));
+  };
+
+  const addSubscriber = (email: string) => {
+    if (subscribers.some((subscriber) => subscriber.email.toLowerCase() === email.toLowerCase())) {
+      setToast("Email already subscribed");
+    } else {
+      setSubscribers((items) => [{ email, joined: new Date().toLocaleDateString("en-GB") }, ...items]);
+      setToast("Subscriber added");
+    }
+    setTimeout(() => setToast(""), 1800);
+  };
+
   const copyProfile = async () => {
-    await navigator.clipboard?.writeText(`https://linkspark.site/${name}`);
+    await navigator.clipboard?.writeText(publicUrl);
     setToast("Profile link copied");
     setTimeout(() => setToast(""), 1800);
+  };
+
+  const downloadQr = () => {
+    const svg = document.getElementById("profile-qr");
+    if (!svg) return;
+    const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" });
+    const anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = `${name || "linkspark"}-qr.svg`;
+    anchor.click();
+    URL.revokeObjectURL(anchor.href);
   };
 
   return (
@@ -402,7 +556,8 @@ function Dashboard({
         {activeNav === "Links" && (
           <div className="links-editor">
             <section className="profile-summary">
-              <div className="profile-thumb">NF</div>
+              <button className={`profile-thumb ${profileImage ? "has-image" : ""}`} style={profileImage ? { backgroundImage: `url(${profileImage})` } : undefined} onClick={() => profileFileRef.current?.click()} aria-label="Change profile image">{profileImage ? "" : "NF"}<i>+</i></button>
+              <input ref={profileFileRef} className="visually-hidden" type="file" accept="image/*" onChange={(event) => uploadProfileImage(event.target.files?.[0])} />
               <div>
                 <input value={name} onChange={(e) => setName(e.target.value.replace(/\s/g, "").slice(0, 24))} aria-label="Profile username" />
                 <input value={bio} onChange={(e) => setBio(e.target.value.slice(0, 160))} placeholder="Add a short bio" aria-label="Profile bio" />
@@ -411,21 +566,37 @@ function Dashboard({
             </section>
 
             <button className="add-button" onClick={addLink}><span>＋</span> Add link</button>
-            <div className="collection-row"><button>▱ Add collection</button><button>▰ View archive　›</button></div>
+            <div className="collection-row"><button onClick={addCollection}>▱ Add collection</button><button onClick={() => setShowArchive((open) => !open)}>▰ View archive ({archive.length})　›</button></div>
+
+            {showArchive && (
+              <div className="archive-panel">
+                <div className="section-title"><div><h2>Archive</h2><p>Restore a link or remove it permanently.</p></div><button onClick={() => setShowArchive(false)}>×</button></div>
+                {archive.length === 0 ? <p className="archive-empty">Nothing archived yet.</p> : archive.map((item) => (
+                  <div className="archive-item" key={item.id}>
+                    <SocialIcon name={item.icon} title={item.title} /><strong>{item.title}</strong>
+                    <button onClick={() => { setLinks((linksNow) => [...linksNow, item]); setArchive((items) => items.filter((entry) => entry.id !== item.id)); }}>Restore</button>
+                    <button onClick={() => setArchive((items) => items.filter((entry) => entry.id !== item.id))}>Delete</button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="link-stack">
               {links.map((link, index) => (
                 <article className="link-card" key={link.id}>
-                  <button className="drag-handle" aria-label={`Move ${link.title}`}>⠿</button>
+                  <div className="drag-controls">
+                    <button onClick={() => moveLink(index, -1)} disabled={index === 0} aria-label={`Move ${link.title} up`}>↑</button>
+                    <button onClick={() => moveLink(index, 1)} disabled={index === links.length - 1} aria-label={`Move ${link.title} down`}>↓</button>
+                  </div>
                   <div className="link-card-main">
                     <label>
                       <span>Title</span>
                       <input value={link.title} onChange={(e) => updateLink(link.id, { title: e.target.value })} />
                     </label>
-                    <label>
+                    {link.kind !== "collection" && <label>
                       <span>URL</span>
                       <input value={link.url} onChange={(e) => updateLink(link.id, { url: e.target.value })} />
-                    </label>
+                    </label>}
                     <div className="link-tools">
                       <span style={{ color: link.color }}><SocialIcon name={link.icon} title={link.title} /></span>
                       <button title="Add thumbnail">▧</button>
@@ -436,7 +607,7 @@ function Dashboard({
                   </div>
                   <div className="link-card-actions">
                     <button className={`switch ${link.enabled ? "on" : ""}`} onClick={() => updateLink(link.id, { enabled: !link.enabled })} aria-label={`${link.enabled ? "Disable" : "Enable"} ${link.title}`}><i /></button>
-                    <button onClick={() => setLinks((items) => items.filter((item) => item.id !== link.id))} aria-label={`Delete ${link.title}`}>⌫</button>
+                    <button onClick={() => archiveLink(link.id)} aria-label={`Archive ${link.title}`}>⌫</button>
                   </div>
                   <span className="link-number">{String(index + 1).padStart(2, "0")}</span>
                 </article>
@@ -462,17 +633,79 @@ function Dashboard({
           </div>
         )}
 
-        {!["Links", "Design", "Insights"].includes(activeNav) && (
+        {activeNav === "Shop" && (
+          <div className="utility-panel">
+            <div className="section-title"><div><h2>Your products</h2><p>Add products or paid resources to your page.</p></div><button onClick={() => setProducts((items) => [...items, { id: ++nextId.current, title: "New product", price: "Rp0", url: "https://", enabled: true }])}>＋ Add product</button></div>
+            <div className="product-list">
+              {products.map((product) => (
+                <article className="product-card" key={product.id}>
+                  <div className="product-art">▣</div>
+                  <div>
+                    <label><span>Product</span><input value={product.title} onChange={(event) => setProducts((items) => items.map((item) => item.id === product.id ? { ...item, title: event.target.value } : item))} /></label>
+                    <label><span>Price</span><input value={product.price} onChange={(event) => setProducts((items) => items.map((item) => item.id === product.id ? { ...item, price: event.target.value } : item))} /></label>
+                    <label><span>URL</span><input value={product.url} onChange={(event) => setProducts((items) => items.map((item) => item.id === product.id ? { ...item, url: event.target.value } : item))} /></label>
+                  </div>
+                  <div className="product-actions">
+                    <button className={`switch ${product.enabled ? "on" : ""}`} onClick={() => setProducts((items) => items.map((item) => item.id === product.id ? { ...item, enabled: !item.enabled } : item))}><i /></button>
+                    <button onClick={() => setProducts((items) => items.filter((item) => item.id !== product.id))}>Delete</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeNav === "Audience" && (
+          <div className="utility-panel">
+            <div className="section-title"><div><h2>Your audience</h2><p>People who joined through your page.</p></div><span>{subscribers.length} subscribers</span></div>
+            <form className="manual-subscriber" onSubmit={(event) => { event.preventDefault(); const form = event.currentTarget; const input = form.elements.namedItem("email") as HTMLInputElement; addSubscriber(input.value); input.value = ""; }}>
+              <input name="email" type="email" required placeholder="Add subscriber email" /><button type="submit">Add</button>
+            </form>
+            <div className="audience-table">
+              <div><strong>Email</strong><strong>Joined</strong><span /></div>
+              {subscribers.map((subscriber) => <div key={subscriber.email}><span>{subscriber.email}</span><span>{subscriber.joined}</span><button onClick={() => setSubscribers((items) => items.filter((item) => item.email !== subscriber.email))}>×</button></div>)}
+              {subscribers.length === 0 && <p>No subscribers yet. Turn on email capture to start collecting emails.</p>}
+            </div>
+          </div>
+        )}
+
+        {activeNav === "Email capture" && (
+          <div className="utility-panel email-panel">
+            <div className="feature-toggle">
+              <div><span>✉</span><div><h2>Email capture</h2><p>Let visitors join your list directly from your page.</p></div></div>
+              <button className={`switch ${emailCapture ? "on" : ""}`} onClick={() => setEmailCapture((value) => !value)}><i /></button>
+            </div>
+            <div className="email-preview-card">
+              <span>LIVE PREVIEW</span><h3>Stay in the loop</h3><p>Updates, new projects, and useful things—straight to your inbox.</p>
+              <div><input disabled placeholder="you@email.com" /><button disabled>Join</button></div>
+            </div>
+          </div>
+        )}
+
+        {(activeNav === "Share" || activeNav === "QR code") && (
+          <div className="utility-panel share-panel">
+            <div className="section-title"><div><h2>Share your page</h2><p>Copy your URL or download a QR code.</p></div></div>
+            <div className="share-card">
+              <div className="qr-box"><QRCode id="profile-qr" value={publicUrl} size={190} bgColor="#ffffff" fgColor="#111111" /></div>
+              <div className="share-details">
+                <span>YOUR PUBLIC LINK</span><strong>{publicUrl}</strong>
+                <div><button onClick={copyProfile}>Copy link</button><button onClick={downloadQr}>Download QR</button></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!["Links", "Design", "Insights", "Shop", "Audience", "Email capture", "Share", "QR code"].includes(activeNav) && (
           <div className="empty-panel"><span>✦</span><h2>{activeNav} is ready for your next idea.</h2><p>This demo focuses on onboarding, link management, themes, and live preview.</p><button onClick={() => setActiveNav("Links")}>Back to links</button></div>
         )}
       </section>
 
       <aside className={`preview-pane ${mobilePreview ? "open" : ""}`}>
         <div className="preview-pane-top">
-          <button onClick={copyProfile}>linkspark.site/{name || "creator"}　↗</button>
+          <button onClick={copyProfile}>linkspark-nemu.openclawid6.chatgpt.site　↗</button>
           <button className="close-preview" onClick={() => setMobilePreview(false)}>×</button>
         </div>
-        <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} /></div>
+        <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} profileImage={profileImage} products={products} emailCapture={emailCapture} onLinkClick={recordClick} onSubscribe={addSubscriber} /></div>
       </aside>
       {toast && <div className="toast">✓ {toast}</div>}
     </main>
@@ -481,7 +714,7 @@ function Dashboard({
 
 export default function Home() {
   const [ready, setReady] = useState(false);
-  const [profile, setProfile] = useState<{ theme: string; links: LinkItem[]; name: string; bio: string; complete: boolean } | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -495,7 +728,17 @@ export default function Home() {
     });
   }, []);
 
-  const dashboardData = useMemo(() => profile ? { theme: profile.theme, links: profile.links, name: profile.name, bio: profile.bio } : null, [profile]);
+  const dashboardData = useMemo(() => profile ? {
+    theme: profile.theme,
+    links: profile.links,
+    name: profile.name,
+    bio: profile.bio,
+    profileImage: profile.profileImage,
+    archive: profile.archive,
+    products: profile.products,
+    subscribers: profile.subscribers,
+    emailCapture: profile.emailCapture,
+  } : null, [profile]);
 
   if (!ready) return <div className="loading-screen"><span>✦</span></div>;
   if (!profile?.complete || !dashboardData) {
