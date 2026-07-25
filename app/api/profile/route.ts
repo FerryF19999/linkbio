@@ -24,7 +24,25 @@ export async function GET(request: Request) {
     const db = getDb();
     const [profile] = await db.select().from(profiles).where(eq(profiles.publicId, publicId)).limit(1);
     if (!profile) return Response.json({ profile: null }, { status: 404 });
-    return Response.json({ profile: JSON.parse(profile.data), updatedAt: profile.updatedAt });
+    const stored = JSON.parse(profile.data) as {
+      theme?: string;
+      links?: unknown[];
+      name?: string;
+      bio?: string;
+      profileImage?: string;
+      products?: unknown[];
+      emailCapture?: boolean;
+    };
+    const publicProfile = {
+      theme: stored.theme,
+      links: stored.links ?? [],
+      name: stored.name,
+      bio: stored.bio,
+      profileImage: stored.profileImage,
+      products: stored.products ?? [],
+      emailCapture: Boolean(stored.emailCapture),
+    };
+    return Response.json({ profile: publicProfile, updatedAt: profile.updatedAt });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Unable to load profile" }, { status: 500 });
   }
