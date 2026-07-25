@@ -418,6 +418,17 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .login-back { position: absolute; bottom: 23px; color: #666; text-decoration: none; font-size: 12px; }
 .dashboard-logout { display: block; text-align: center; color: #777; text-decoration: none; margin-top: 8px; font-size: 12px; }
 .mobile-signout { display: block; text-align: center; color: #a32020; text-decoration: none; padding: 11px 0 2px; font-size: 12px; }
+.login-card-admin { width: min(520px,100%); min-height: 0; display: block; }
+.login-card-admin .login-copy { padding: 58px 54px 50px; }
+.login-card-admin .login-copy h1 { font-size: 52px; }
+.login-denied { border: 1px solid #efb0a7; background: #fff3f1; color: #8e2116; border-radius: 13px; padding: 13px 15px; margin: 0 0 18px; }
+.login-denied strong,.login-denied span { display: block; }
+.login-denied strong { font-size: 13px; margin-bottom: 4px; }
+.login-denied span { font-size: 11px; line-height: 1.45; }
+.admin-account-field { margin-bottom: 14px; }
+.admin-account-field label { display: block; color: #74746d; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .09em; margin: 0 0 7px 3px; }
+.admin-account-field input { width: 100%; min-height: 56px; border: 1px solid #d9d8d2; border-radius: 14px; background: #f8f8f5; color: #222; padding: 0 16px; font: inherit; font-size: 14px; }
+.admin-switch-account { min-height: 58px; border-radius: 14px; background: #111; color: #fff; padding: 0 18px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; font-weight: 750; font-size: 14px; }
 
 @media (min-width: 720px) {
   body:has(.standalone-profile-shell) { background: #eceef2; }
@@ -459,6 +470,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
   .login-page { padding: 90px 20px 58px; }
   .login-card { grid-template-columns: 1fr; max-width: 590px; }
   .login-copy { padding: 55px 48px; }
+  .login-card-admin .login-copy { padding: 52px 44px 46px; }
   .login-art { min-height: 430px; }
   .login-mini-phone { transform: rotate(3deg) scale(.88); }
   .onboarding { grid-template-rows: 68px 1fr 95px; }
@@ -542,6 +554,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
   .login-page { padding: 78px 12px 52px; align-items: start; }
   .login-card { border-radius: 24px; min-height: 0; }
   .login-copy { padding: 44px 24px 38px; }
+  .login-card-admin .login-copy { padding: 42px 24px 36px; }
   .login-copy h1 { font-size: 44px; }
   .login-art { min-height: 310px; }
   .login-mini-phone { transform: rotate(3deg) scale(.65); margin-top: -45px; }

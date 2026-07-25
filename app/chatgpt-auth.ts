@@ -7,6 +7,8 @@ export type ChatGPTUser = {
   fullName: string | null;
 };
 
+export const ADMIN_EMAIL = "openclawid6@gmail.com";
+
 const USER_EMAIL_HEADER = "oai-authenticated-user-email";
 const USER_FULL_NAME_HEADER = "oai-authenticated-user-full-name";
 const USER_FULL_NAME_ENCODING_HEADER =
@@ -42,6 +44,19 @@ export async function requireChatGPTUser(
   if (user) return user;
 
   redirect(chatGPTSignInPath(returnTo));
+}
+
+export function isAdminUser(user: ChatGPTUser | null): user is ChatGPTUser {
+  return user?.email.toLowerCase() === ADMIN_EMAIL;
+}
+
+export async function requireAdminUser(
+  returnTo: string,
+): Promise<ChatGPTUser> {
+  const user = await getChatGPTUser();
+  if (!user) redirect(chatGPTSignInPath(returnTo));
+  if (!isAdminUser(user)) redirect("/login?denied=1");
+  return user;
 }
 
 export function chatGPTSignInPath(returnTo: string): string {
