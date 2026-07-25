@@ -5,6 +5,11 @@
   "outputDirectory": "public",
   "redirects": [
     {
+      "source": "/",
+      "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/",
+      "permanent": false
+    },
+    {
       "source": "/:path*",
       "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/:path*",
       "permanent": false
