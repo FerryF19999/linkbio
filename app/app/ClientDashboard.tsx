@@ -646,7 +646,7 @@ function Dashboard({
           <button onClick={() => setActiveNav("Design")}>Finish setup</button>
         </div>
         <button className="reset-link" onClick={onReset}>↺ Restart onboarding</button>
-        <Link className="dashboard-logout" href="/signout-with-chatgpt?return_to=/">⇥ Sign out</Link>
+        <Link className="dashboard-logout" href="/auth/signout">⇥ Sign out</Link>
       </aside>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
@@ -672,7 +672,7 @@ function Dashboard({
               ))}
             </nav>
             <button className="mobile-reset" onClick={() => { setMobileMenuOpen(false); onReset(); }}>↺ Restart onboarding</button>
-            <Link className="mobile-signout" href="/signout-with-chatgpt?return_to=/">⇥ Sign out</Link>
+            <Link className="mobile-signout" href="/auth/signout">⇥ Sign out</Link>
           </section>
         </div>
       )}

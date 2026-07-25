@@ -1,7 +1,5 @@
-import { count, desc, eq } from "drizzle-orm";
-import { getChatGPTUser, isAdminUser } from "../../chatgpt-auth";
-import { getDb } from "../../../db";
-import { waitlistEntries } from "../../../db/schema";
+import { getNemuUser, isAdminUser } from "../../auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 function cleanName(value: unknown) {
   return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
@@ -28,31 +26,34 @@ export async function POST(request: Request) {
       return Response.json({ error: "Please enter a valid email." }, { status: 400 });
     }
 
-    const db = getDb();
-    const [existing] = await db
-      .select({ id: waitlistEntries.id })
-      .from(waitlistEntries)
-      .where(eq(waitlistEntries.email, email))
-      .limit(1);
-    const createdAt = new Date();
+    const db = createSupabaseAdminClient();
+    const { data: existing, error: existingError } = await db
+      .from("waitlist_entries")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (existingError) throw existingError;
+
     if (!existing) {
-      await db
-        .insert(waitlistEntries)
-        .values({
-          id: crypto.randomUUID(),
+      const { error: insertError } = await db
+        .from("waitlist_entries")
+        .insert({
           name,
           email,
           source: "landing",
-          createdAt,
-        })
-        .onConflictDoNothing({ target: waitlistEntries.email });
+        });
+      if (insertError && insertError.code !== "23505") throw insertError;
     }
-    const [total] = await db.select({ value: count() }).from(waitlistEntries);
+
+    const { count: total, error: countError } = await db
+      .from("waitlist_entries")
+      .select("id", { count: "exact", head: true });
+    if (countError) throw countError;
 
     return Response.json({
       ok: true,
       alreadyJoined: Boolean(existing),
-      total: total?.value ?? 0,
+      total: total ?? 0,
     });
   } catch (error) {
     return Response.json(
@@ -64,22 +65,26 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const user = await getChatGPTUser();
+    const user = await getNemuUser();
     if (!isAdminUser(user)) {
       return Response.json({ error: "Admin access required." }, { status: 403 });
     }
 
-    const db = getDb();
-    const entries = await db
-      .select()
-      .from(waitlistEntries)
-      .orderBy(desc(waitlistEntries.createdAt))
+    const db = createSupabaseAdminClient();
+    const { data: entries, error } = await db
+      .from("waitlist_entries")
+      .select("id,name,email,source,created_at")
+      .order("created_at", { ascending: false })
       .limit(1000);
+    if (error) throw error;
 
     return Response.json({
-      entries: entries.map((entry) => ({
-        ...entry,
-        createdAt: entry.createdAt.toISOString(),
+      entries: (entries ?? []).map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        email: entry.email,
+        source: entry.source,
+        createdAt: entry.created_at,
       })),
     });
   } catch (error) {

@@ -1,109 +1,65 @@
 # NEMU Link Bio
 
-A responsive link-in-bio builder with a public waitlist, an admin-only
-dashboard, and Cloudflare D1 persistence.
-
-## Deployment
-
-The full application runs on Cloudflare/Sites because its authentication and
-database use Cloudflare runtime bindings.
-
-Vercel is configured as the public gateway for the production application, so
-all public pages, profile links, API calls, and authentication handoffs use the
-same `vercel.app` address. This avoids a misleading `.next` build that would
-deploy without working authentication or persistence.
+A responsive link-in-bio builder with a public landing page, waitlist,
+admin-only dashboard, shareable profiles, QR codes, and email capture.
 
 Production: <https://linkbio-one-amber.vercel.app>
 
-## Prerequisites
+## Stack
 
-- Node.js `>=22.13.0`
+- Next.js 16 on Vercel
+- Supabase Auth for the admin email/password session
+- Supabase Postgres for profiles and waitlist submissions
+- Vercel Marketplace integration for environment variables
 
-## Quick Start
+The application is deployed natively on Vercel and does not proxy requests to
+another host.
+
+## Local development
 
 ```bash
 npm install
+vercel link --project linkbio
+vercel env pull .env.local
+npm run db:migrate
 npm run dev
-npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+Copy `.env.example` when running without Vercel CLI. Never commit `.env.local`
+or a service-role key.
 
-## Included Shape
+## Admin account
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+The dashboard only permits the email in `ADMIN_EMAIL`. To create or reset that
+Supabase Auth user, set a temporary `ADMIN_INITIAL_PASSWORD` in `.env.local`
+and run:
 
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+npm run admin:provision
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+Remove `ADMIN_INITIAL_PASSWORD` from the local file after provisioning. The
+password is stored by Supabase Auth, not by the application database.
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+## Database
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+The schema lives in:
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+`supabase/migrations/20260726000000_initial_schema.sql`
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+Apply it with:
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+```bash
+npm run db:migrate
+```
 
-## Useful Commands
+Both tables have row-level security enabled. Browser clients have no direct
+table policy; the Next.js server routes use the service-role key.
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+## Useful commands
 
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- `npm run dev` — start the Next.js development server
+- `npm run build` — create the production `.next` build
+- `npm test` — run the production build verification
+- `npm run db:migrate` — apply the Supabase schema
+- `npm run admin:provision` — create or reset the one allowed admin user

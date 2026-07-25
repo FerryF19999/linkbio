@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getChatGPTUser, isAdminUser } from "./chatgpt-auth";
+import { getNemuUser, isAdminUser } from "./auth";
 import WaitlistForm from "./WaitlistForm";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ const featureItems = [
 ];
 
 export default async function LandingPage() {
-  const user = await getChatGPTUser();
+  const user = await getNemuUser();
   const isAdmin = isAdminUser(user);
 
   return (
