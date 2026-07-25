@@ -60,6 +60,7 @@ type ProfileData = {
   name: string;
   bio: string;
   complete: boolean;
+  publicId?: string;
   profileImage?: string;
   archive?: LinkItem[];
   products?: ProductItem[];
@@ -418,14 +419,32 @@ function Dashboard({
   ]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>(initial.subscribers ?? []);
   const [emailCapture, setEmailCapture] = useState(initial.emailCapture ?? false);
+  const [publicId, setPublicId] = useState(initial.publicId ?? "");
+  const [editToken, setEditToken] = useState("");
   const [showArchive, setShowArchive] = useState(false);
   const [mobilePreview, setMobilePreview] = useState(false);
   const [toast, setToast] = useState("");
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
-  const profileSlug = (name || "nemuai").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 32) || "nemuai";
-  const publicUrl = `https://linkspark-nemu.openclawid6.chatgpt.site/${profileSlug}`;
+  const publicUrl = `https://linkspark-nemu.openclawid6.chatgpt.site/${publicId || "profile"}`;
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      let savedId = localStorage.getItem("linkspark-public-id") || initial.publicId || "";
+      let savedToken = localStorage.getItem("linkspark-edit-token") || "";
+      if (!savedId) {
+        savedId = `${crypto.randomUUID().replaceAll("-", "")}${crypto.randomUUID().replaceAll("-", "")}`;
+        localStorage.setItem("linkspark-public-id", savedId);
+      }
+      if (!savedToken) {
+        savedToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+        localStorage.setItem("linkspark-edit-token", savedToken);
+      }
+      setPublicId(savedId);
+      setEditToken(savedToken);
+    });
+  }, [initial.publicId]);
 
   useEffect(() => {
     const savedProfile = {
@@ -438,18 +457,20 @@ function Dashboard({
       products,
       subscribers,
       emailCapture,
+      publicId,
       complete: true,
     };
     localStorage.setItem("linkspark-profile", JSON.stringify(savedProfile));
+    if (!publicId || !editToken) return;
     const syncTimer = window.setTimeout(() => {
       void fetch("/api/profile", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ slug: profileSlug, profile: savedProfile }),
+        headers: { "content-type": "application/json", authorization: `Bearer ${editToken}` },
+        body: JSON.stringify({ publicId, profile: savedProfile }),
       });
     }, 700);
     return () => window.clearTimeout(syncTimer);
-  }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture, profileSlug]);
+  }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture, publicId, editToken]);
 
   const addLink = () => {
     const id = ++nextId.current;
@@ -716,7 +737,7 @@ function Dashboard({
 
       <aside className={`preview-pane ${mobilePreview ? "open" : ""}`}>
         <div className="preview-pane-top">
-          <button onClick={copyProfile}>linkspark-nemu.openclawid6.chatgpt.site/{profileSlug}　↗</button>
+          <button onClick={copyProfile}>linkspark-nemu.openclawid6.chatgpt.site/{publicId ? `${publicId.slice(0, 10)}…` : "profile"}　↗</button>
           <button className="close-preview" onClick={() => setMobilePreview(false)}>×</button>
         </div>
         <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} profileImage={profileImage} products={products} emailCapture={emailCapture} onLinkClick={recordClick} onSubscribe={addSubscriber} /></div>
@@ -752,6 +773,7 @@ export default function Home() {
     products: profile.products,
     subscribers: profile.subscribers,
     emailCapture: profile.emailCapture,
+    publicId: profile.publicId,
   } : null, [profile]);
 
   if (!ready) return <div className="loading-screen"><span>✦</span></div>;

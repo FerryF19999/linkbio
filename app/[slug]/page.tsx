@@ -110,7 +110,7 @@ export default function PublicProfilePage() {
 
   useEffect(() => {
     let active = true;
-    fetch(`/api/profile?slug=${encodeURIComponent(slug)}`)
+    fetch(`/api/profile?id=${encodeURIComponent(slug)}`)
       .then((response) => response.ok ? response.json() : null)
       .then((result) => {
         if (active && result?.profile) setProfile(result.profile);

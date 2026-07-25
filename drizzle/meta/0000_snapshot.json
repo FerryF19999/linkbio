@@ -1,16 +1,23 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "970fae66-f9b6-49d9-95b4-ae05d1e0ec36",
+  "id": "1d25fd76-3493-457c-aad1-949aa366e04f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "profiles": {
       "name": "profiles",
       "columns": {
-        "slug": {
-          "name": "slug",
+        "public_id": {
+          "name": "public_id",
           "type": "text",
           "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "edit_token_hash": {
+          "name": "edit_token_hash",
+          "type": "text",
+          "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
