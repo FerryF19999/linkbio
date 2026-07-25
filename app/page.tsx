@@ -530,7 +530,11 @@ function Dashboard({
             </button>
           ))}
           <p>GROW</p>
-          {["Share", "Email capture", "QR code"].map((item, index) => <button key={item}><span>{["↗", "✉", "▦"][index]}</span>{item}</button>)}
+          {["Share", "Email capture", "QR code"].map((item, index) => (
+            <button key={item} className={activeNav === item ? "active" : ""} onClick={() => setActiveNav(item)}>
+              <span>{["↗", "✉", "▦"][index]}</span>{item}
+            </button>
+          ))}
         </nav>
         <div className="setup-card">
           <div className="setup-progress"><span>72%</span></div>
