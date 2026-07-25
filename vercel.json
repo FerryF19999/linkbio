@@ -3,16 +3,14 @@
   "framework": null,
   "buildCommand": "",
   "outputDirectory": "public",
-  "redirects": [
+  "rewrites": [
     {
       "source": "/",
-      "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/",
-      "permanent": false
+      "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/"
     },
     {
       "source": "/:path*",
-      "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/:path*",
-      "permanent": false
+      "destination": "https://linkspark-nemu.openclawid6.chatgpt.site/:path*"
     }
   ]
 }
