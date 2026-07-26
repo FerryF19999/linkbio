@@ -72,11 +72,34 @@ type TrafficDay = {
   views: number;
 };
 
+type ClickDay = {
+  date: string;
+  label: string;
+  clicks: number;
+};
+
+type ClickLinkStats = {
+  linkId: string;
+  linkType: string;
+  title: string;
+  url: string;
+  clicks: number;
+};
+
+type ClickStats = {
+  total: number;
+  today: number;
+  last7Days: number;
+  daily: ClickDay[];
+  links: ClickLinkStats[];
+};
+
 type TrafficStats = {
   total: number;
   today: number;
   last7Days: number;
   daily: TrafficDay[];
+  clicks: ClickStats;
 };
 
 type TrafficResponse = {
@@ -485,9 +508,20 @@ function Dashboard({
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
   const publicUrl = `${PUBLIC_PROFILE_ORIGIN}/${PUBLIC_PROFILE_ID}`;
-  const emptyTraffic: TrafficStats = { total: 0, today: 0, last7Days: 0, daily: [] };
+  const emptyTraffic: TrafficStats = {
+    total: 0,
+    today: 0,
+    last7Days: 0,
+    daily: [],
+    clicks: { total: 0, today: 0, last7Days: 0, daily: [], links: [] },
+  };
   const nemuTraffic = trafficProfiles["nemu-ai"] ?? emptyTraffic;
   const cekHargaTraffic = trafficProfiles.cekhargadisini ?? emptyTraffic;
+  const nemuLinkClickCounts = new Map(
+    nemuTraffic.clicks.links
+      .filter((entry) => entry.linkType === "link")
+      .map((entry) => [entry.linkId, entry.clicks]),
+  );
   const combinedDaily = Array.from({ length: 7 }, (_, index) => ({
     label: nemuTraffic.daily[index]?.label ?? cekHargaTraffic.daily[index]?.label ?? "",
     views: (nemuTraffic.daily[index]?.views ?? 0) + (cekHargaTraffic.daily[index]?.views ?? 0),
@@ -800,7 +834,7 @@ function Dashboard({
                       <button title="Add thumbnail">▧</button>
                       <button title="Feature link">☆</button>
                       <button title="Schedule">◷</button>
-                      <span className="clicks">▥ {link.clicks} clicks</span>
+                      <span className="clicks">▥ {nemuLinkClickCounts.get(String(link.id)) ?? 0} clicks</span>
                     </div>
                   </div>
                   <div className="link-card-actions">
@@ -831,19 +865,19 @@ function Dashboard({
               <small>{nemuTraffic.today + cekHargaTraffic.today} kunjungan hari ini</small>
             </div>
             <div className="metric-card">
+              <span>TOTAL LINK CLICKS</span>
+              <strong>{(nemuTraffic.clicks.total + cekHargaTraffic.clicks.total).toLocaleString("id-ID")}</strong>
+              <small>{nemuTraffic.clicks.today + cekHargaTraffic.clicks.today} klik hari ini</small>
+            </div>
+            <div className="metric-card">
               <span>NEMU AI</span>
-              <strong>{nemuTraffic.total.toLocaleString("id-ID")}</strong>
-              <small>{nemuTraffic.last7Days} dalam 7 hari terakhir</small>
+              <strong>{nemuTraffic.total.toLocaleString("id-ID")} <em>views</em></strong>
+              <small>{nemuTraffic.clicks.total} klik tautan</small>
             </div>
             <div className="metric-card">
               <span>CEK HARGA DI SINI</span>
-              <strong>{cekHargaTraffic.total.toLocaleString("id-ID")}</strong>
-              <small>{cekHargaTraffic.last7Days} dalam 7 hari terakhir</small>
-            </div>
-            <div className="metric-card">
-              <span>LINK CLICKS</span>
-              <strong>{links.reduce((sum, link) => sum + link.clicks, 0)}</strong>
-              <small>Interaksi link profil NEMU AI</small>
+              <strong>{cekHargaTraffic.total.toLocaleString("id-ID")} <em>views</em></strong>
+              <small>{cekHargaTraffic.clicks.total} klik tautan</small>
             </div>
             <div className="chart-card">
               <div className="section-title">
@@ -860,6 +894,40 @@ function Dashboard({
                       <b>{day.views}</b>
                       <span>{day.label}</span>
                     </i>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="chart-card click-performance-card">
+              <div className="section-title">
+                <div><h2>Klik per Tautan</h2><p>Jumlah klik nyata dari halaman publik, diurutkan dari yang paling banyak.</p></div>
+              </div>
+              {trafficLoading ? (
+                <p className="analytics-state compact">Memuat klik…</p>
+              ) : trafficError ? (
+                <p className="analytics-state compact error">{trafficError}</p>
+              ) : (
+                <div className="click-profile-grid">
+                  {[
+                    ["NEMU AI", nemuTraffic.clicks.links],
+                    ["CEK HARGA DI SINI", cekHargaTraffic.clicks.links],
+                  ].map(([profileLabel, clickLinks]) => (
+                    <section className="click-profile-list" key={String(profileLabel)}>
+                      <header>
+                        <strong>{String(profileLabel)}</strong>
+                        <span>{(clickLinks as ClickLinkStats[]).reduce((sum, item) => sum + item.clicks, 0)} klik</span>
+                      </header>
+                      {(clickLinks as ClickLinkStats[]).length === 0 ? (
+                        <p>Belum ada klik.</p>
+                      ) : (
+                        (clickLinks as ClickLinkStats[]).map((item) => (
+                          <div key={`${item.linkType}-${item.linkId}`}>
+                            <span><strong>{item.title}</strong><small>{item.url}</small></span>
+                            <b>{item.clicks}</b>
+                          </div>
+                        ))
+                      )}
+                    </section>
                   ))}
                 </div>
               )}

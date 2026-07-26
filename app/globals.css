@@ -215,6 +215,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .metric-card, .chart-card { border: 1px solid #e1e1dc; border-radius: 20px; padding: 24px; }
 .metric-card span { font-size: 11px; letter-spacing: .1em; color: #777; font-weight: 800; }
 .metric-card strong { display: block; font-size: 38px; margin: 8px 0; }
+.metric-card strong em { font-size: 13px; font-style: normal; color: #777; }
 .metric-card small { color: #148144; }
 .chart-card { grid-column: 1/-1; }
 .fake-chart { height: 220px; display: flex; align-items: end; gap: 13px; padding: 15px 8px 25px; border-bottom: 1px solid #ddd; }
@@ -222,7 +223,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .fake-chart i b { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 10px; color: #5f2bd8; }
 .fake-chart i span { position: absolute; bottom: -23px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 10px; color: #777; }
 .analytics-state { min-height: 220px; margin: 0; display: grid; place-items: center; color: #777; }
+.analytics-state.compact { min-height: 120px; }
 .analytics-state.error { color: #b42318; }
+.click-profile-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.click-profile-list { border: 1px solid #e8e8e3; border-radius: 16px; overflow: hidden; }
+.click-profile-list > header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; background: #f7f6fa; }
+.click-profile-list > header strong { font-size: 13px; letter-spacing: .05em; }
+.click-profile-list > header span { font-size: 12px; color: #6b25ed; font-weight: 800; }
+.click-profile-list > p { margin: 0; padding: 24px 16px; color: #777; font-size: 13px; text-align: center; }
+.click-profile-list > div { padding: 12px 16px; display: flex; gap: 16px; align-items: center; justify-content: space-between; border-top: 1px solid #eeeeea; }
+.click-profile-list > div > span { min-width: 0; }
+.click-profile-list > div strong { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.click-profile-list > div small { display: block; margin-top: 3px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.click-profile-list > div b { min-width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: #efe7ff; color: #6b25ed; }
 .empty-panel { margin: 90px auto; width: min(560px,calc(100% - 50px)); text-align: center; padding: 50px; background: #f7f5ff; border-radius: 30px; }
 .empty-panel > span { font-size: 50px; color: var(--purple); }
 .empty-panel h2 { font-size: 28px; letter-spacing: -.03em; }
@@ -701,6 +714,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
   .theme-card.compact .mini-profile { height: 230px; }
   .insights-panel { grid-template-columns: 1fr; }
   .metric-card, .chart-card { grid-column: 1; padding: 18px; }
+  .click-profile-grid { grid-template-columns: 1fr; }
   .product-card { padding: 13px; gap: 12px; }
   .product-card label { grid-template-columns: 45px minmax(0,1fr); }
   .manual-subscriber { grid-template-columns: 1fr; }

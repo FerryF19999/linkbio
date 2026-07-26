@@ -95,6 +95,25 @@ function BrandIcon({ name }: { name: string }) {
   return <Icon aria-hidden="true" />;
 }
 
+function getAnalyticsSessionId() {
+  const sessionKey = "nemu-linkbio-analytics-session";
+  let sessionId = sessionStorage.getItem(sessionKey) ?? "";
+  if (!sessionId) {
+    sessionId =
+      typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    sessionStorage.setItem(sessionKey, sessionId);
+  }
+  return sessionId;
+}
+
+function createAnalyticsEventId() {
+  return typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export default function PublicProfileClient({
   initialProfile,
   slug,
@@ -109,18 +128,8 @@ export default function PublicProfileClient({
   useEffect(() => {
     if (navigator.doNotTrack === "1") return;
 
-    const sessionKey = "nemu-linkbio-analytics-session";
-    let sessionId = "";
     try {
-      sessionId = sessionStorage.getItem(sessionKey) ?? "";
-      if (!sessionId) {
-        sessionId =
-          typeof crypto.randomUUID === "function"
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        sessionStorage.setItem(sessionKey, sessionId);
-      }
-
+      const sessionId = getAnalyticsSessionId();
       const viewKey = `nemu-linkbio-viewed:${slug}:${sessionId}`;
       if (sessionStorage.getItem(viewKey)) return;
       sessionStorage.setItem(viewKey, "1");
@@ -144,6 +153,32 @@ export default function PublicProfileClient({
     }
   }, [slug]);
 
+  const trackClick = (
+    item: { id: number; title: string; url: string },
+    linkType: "link" | "product",
+  ) => {
+    if (!item.url || item.url === "#" || navigator.doNotTrack === "1") return;
+    try {
+      void fetch("/api/analytics", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          event: "click",
+          publicId: slug,
+          sessionId: getAnalyticsSessionId(),
+          eventId: createAnalyticsEventId(),
+          linkId: String(item.id),
+          linkType,
+        }),
+        keepalive: true,
+      }).catch(() => {
+        // A tracking failure must never interrupt navigation.
+      });
+    } catch {
+      // A tracking failure must never interrupt navigation.
+    }
+  };
+
   const share = async () => {
     if (navigator.share) {
       await navigator.share({ title: `@${profile.name}`, url: window.location.href });
@@ -162,7 +197,7 @@ export default function PublicProfileClient({
       <p className="standalone-bio">{profile.bio || "Your story, your links, all in one place."}</p>
       <div className="standalone-socials">
         {profile.links.filter((link) => link.enabled && link.kind !== "collection" && socialIcons.has(link.icon)).slice(0, 6).map((link) => (
-          <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" aria-label={link.title}>
+          <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" aria-label={link.title} onClick={() => trackClick(link, "link")}>
             <BrandIcon name={link.icon} />
           </a>
         ))}
@@ -177,6 +212,7 @@ export default function PublicProfileClient({
             href={link.url || "#"}
             target="_blank"
             rel="noreferrer"
+            onClick={() => trackClick(link, "link")}
             style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}
           >
             <span
@@ -189,7 +225,7 @@ export default function PublicProfileClient({
           </a>
         ))}
         {(profile.products ?? []).filter((product) => product.enabled).map((product) => (
-          <a key={product.id} href={product.url || "#"} target="_blank" rel="noreferrer" style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}>
+          <a key={product.id} href={product.url || "#"} target="_blank" rel="noreferrer" onClick={() => trackClick(product, "product")} style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}>
             <span className="product-glyph">▣</span><strong>{product.title}<small>{product.price}</small></strong><span>↗</span>
           </a>
         ))}
