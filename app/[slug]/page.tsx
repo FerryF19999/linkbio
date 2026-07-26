@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const fallbackProfile: PublicProfile = {
   theme: "classic",
   name: "nemu.ai",
-  bio: "Marketplace generasi baru Indonesia—lebih personal, aman, dan mudah dengan bantuan AI.",
+  bio: "Marketplace generasi baru Indonesia, lebih personal, aman, dan mudah dengan bantuan AI.",
   profileImage: "/favicon.svg",
   links: [
     {
@@ -40,7 +40,7 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 4,
-      title: "Instagram — @nemu_ai_",
+      title: "Instagram @nemu_ai_",
       url: "https://www.instagram.com/nemu_ai_/",
       icon: "instagram",
       color: "#e1306c",
@@ -48,7 +48,7 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 5,
-      title: "TikTok — @nemu_ai_",
+      title: "TikTok @nemu_ai_",
       url: "https://www.tiktok.com/@nemu_ai_",
       icon: "tiktok",
       color: "#111111",
@@ -56,7 +56,7 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 6,
-      title: "LinkedIn — Nemu AI",
+      title: "LinkedIn Nemu AI",
       url: "https://www.linkedin.com/company/nemu-ai/",
       icon: "linkedin",
       color: "#0a66c2",
