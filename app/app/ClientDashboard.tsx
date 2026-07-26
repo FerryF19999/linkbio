@@ -41,6 +41,7 @@ type LinkItem = {
   enabled: boolean;
   clicks: number;
   image?: string;
+  featured?: boolean;
   kind?: "link" | "collection";
 };
 
@@ -395,6 +396,7 @@ function PublicPreview({
         ) : (
             <a
               key={link.id}
+              className={link.featured ? "is-featured" : undefined}
               href={link.url || "#"}
               target={link.url?.startsWith("http") ? "_blank" : undefined}
               rel="noreferrer"
@@ -410,7 +412,7 @@ function PublicPreview({
               >
                 {link.image ? null : <SocialIcon name={link.icon} title={link.title} />}
               </span>
-              <strong>{link.title || "Untitled link"}</strong><b>•••</b>
+              <strong>{link.featured && <small className="featured-badge">Fitur Baru</small>}{link.title || "Untitled link"}</strong><b>•••</b>
             </a>
           ))}
         {products.filter((product) => product.enabled).map((product) => (

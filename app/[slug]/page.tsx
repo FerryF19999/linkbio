@@ -88,6 +88,8 @@ const fallbackProfile: PublicProfile = {
       icon: "website",
       color: "#704bfd",
       enabled: true,
+      image: "/favicon.svg",
+      featured: true,
     },
     {
       id: 4,

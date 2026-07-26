@@ -312,10 +312,57 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .standalone-profile-shell[data-theme="classic"] .standalone-link-media:not(.has-image) { padding: 18px; }
 .standalone-profile-shell[data-theme="classic"] .standalone-links > a > strong { font-size: 16px; font-weight: 570; }
 .standalone-profile-shell[data-theme="classic"] .standalone-links > a > span:last-child { color: #b9b9b9; font-weight: 900; letter-spacing: 2px; }
+.standalone-profile-shell .standalone-links > a.is-featured {
+  background: linear-gradient(120deg,#5a35e8 0%,#704bfd 52%,#8a66ff 100%) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.36) !important;
+  box-shadow: 0 14px 34px rgba(112,75,253,.3);
+}
+.standalone-profile-shell .standalone-links > a.is-featured:hover {
+  color: #fff !important;
+  border-color: rgba(255,255,255,.72) !important;
+  box-shadow: 0 18px 38px rgba(112,75,253,.4);
+}
+.standalone-profile-shell .standalone-links > a.is-featured .standalone-link-media {
+  background-color: #fff;
+  background-size: 58%;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(30,16,86,.2);
+}
+.standalone-profile-shell .standalone-links > a.is-featured > span:last-child { color: rgba(255,255,255,.78); }
+.featured-badge {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 5px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #dfff67;
+  color: #342070;
+  font-size: 8px !important;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  opacity: 1 !important;
+}
 .standalone-profile-shell[data-theme="classic"] > footer { color: #0b0b0e; }
 .standalone-profile-shell[data-theme="classic"] > footer small { color: #704bfd; opacity: 1; }
 
 .preview-link-image { width: 28px; height: 28px; background-position: center; background-repeat: no-repeat; background-size: contain; }
+.preview-links a.is-featured {
+  background: linear-gradient(120deg,#5a35e8,#8060ff) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,.42) !important;
+  box-shadow: 0 8px 20px rgba(112,75,253,.3);
+}
+.preview-links a.is-featured .preview-link-image {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background-color: #fff;
+  background-size: 60%;
+}
+.preview-links a.is-featured .featured-badge { margin-bottom: 3px; font-size: 6px !important; }
 
 /* Landing */
 .landing-page { min-height: 100vh; background: #f8f7f2; color: #111; overflow: hidden; }

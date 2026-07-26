@@ -29,6 +29,7 @@ export type PublicLink = {
   color: string;
   enabled: boolean;
   image?: string;
+  featured?: boolean;
   kind?: "link" | "collection";
 };
 
@@ -132,14 +133,21 @@ export default function PublicProfileClient({
         {profile.links.filter((link) => link.enabled).map((link) => link.kind === "collection" ? (
           <h2 key={link.id}>{link.title}</h2>
         ) : (
-          <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}>
+          <a
+            key={link.id}
+            className={link.featured ? "is-featured" : undefined}
+            href={link.url || "#"}
+            target="_blank"
+            rel="noreferrer"
+            style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}
+          >
             <span
               className={`standalone-link-media ${link.image ? "has-image" : ""}`}
               style={link.image ? { backgroundImage: `url(${link.image})` } : undefined}
             >
               {link.image ? null : <BrandIcon name={link.icon} />}
             </span>
-            <strong>{link.title}</strong><span>•••</span>
+            <strong>{link.featured && <small className="featured-badge">Fitur Baru</small>}{link.title}</strong><span>•••</span>
           </a>
         ))}
         {(profile.products ?? []).filter((product) => product.enabled).map((product) => (
