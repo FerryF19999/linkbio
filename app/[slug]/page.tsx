@@ -1,9 +1,52 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
 import PublicProfileClient, {
   type PublicProfile,
 } from "./PublicProfileClient";
 
 export const dynamic = "force-dynamic";
+
+const profileTitle = "NEMU AI | Marketplace Indonesia";
+const profileDescription = "Temukan marketplace NEMU AI, daftar Official Seller, download aplikasi, dan ikuti Instagram, TikTok, YouTube, serta LinkedIn resmi.";
+
+export function generateMetadata(): Metadata {
+  return {
+    title: {
+      absolute: profileTitle,
+    },
+    description: profileDescription,
+    keywords: ["NEMU AI", "marketplace Indonesia", "official seller", "aplikasi NEMU AI", "belanja online Indonesia"],
+    alternates: {
+      canonical: "/nemu-ai",
+    },
+    openGraph: {
+      title: profileTitle,
+      description: profileDescription,
+      url: "/nemu-ai",
+      siteName: "NEMU AI",
+      locale: "id_ID",
+      type: "website",
+      images: [
+        {
+          url: "/og-nemu-ai.png",
+          width: 1200,
+          height: 630,
+          alt: "NEMU AI Marketplace Generasi Baru Indonesia",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: profileTitle,
+      description: profileDescription,
+      images: ["/og-nemu-ai.png"],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 const fallbackProfile: PublicProfile = {
   theme: "classic",
@@ -48,14 +91,22 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 5,
-      title: "Instagram @nemu_ai_",
-      url: "https://www.instagram.com/nemu_ai_/",
+      title: "Instagram @nemuaiofficial",
+      url: "https://www.instagram.com/nemuaiofficial?igsh=MXY4ZWdyMXFxbTRsYQ==",
       icon: "instagram",
       color: "#e1306c",
       enabled: true,
     },
     {
       id: 6,
+      title: "YouTube @NEMU_AI",
+      url: "https://www.youtube.com/@NEMU_AI",
+      icon: "youtube",
+      color: "#ff0033",
+      enabled: true,
+    },
+    {
+      id: 7,
       title: "TikTok @nemu_ai_",
       url: "https://www.tiktok.com/@nemu_ai_",
       icon: "tiktok",
@@ -63,7 +114,7 @@ const fallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 7,
+      id: 8,
       title: "LinkedIn Nemu AI",
       url: "https://www.linkedin.com/company/nemu-ai/",
       icon: "linkedin",

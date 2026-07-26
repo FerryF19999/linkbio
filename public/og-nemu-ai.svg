@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f1edff"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#704bfd" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#704bfd" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#704bfd" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1080" cy="60" r="350" fill="url(#glow)"/>
+  <circle cx="70" cy="600" r="260" fill="url(#glow)"/>
+  <rect x="58" y="52" width="1084" height="526" rx="42" fill="#fff" stroke="#e0e0e7" filter="url(#shadow)"/>
+  <g transform="translate(92 90) scale(.22)" fill="#704bfd">
+    <path d="M412.58,206.29c0,5.88-.25,11.69-.74,17.44h-101.24c-47.98,0-86.87,38.89-86.87,86.87v101.24c-5.75.49-11.57.74-17.44.74s-11.69-.25-17.44-.74v-101.3c0-47.94-38.86-86.81-86.81-86.81H.74c-.49-5.75-.74-11.57-.74-17.44s.25-11.69.74-17.44h101.3c47.94,0,86.81-38.86,86.81-86.81V.74c5.75-.49,11.57-.74,17.44-.74s11.69.25,17.44.74v101.3c0,47.94,38.86,86.81,86.81,86.81h101.3c.5,5.75.74,11.57.74,17.44Z"/>
+    <path d="M363.86,340.45c-3.34,3.96-6.87,7.73-10.52,11.38-3.59,3.65-7.36,7.18-11.32,10.52l-73.61-70.02,10.64-11.2,10.64-11.2,74.17,70.52Z"/>
+    <path d="M48.72,72.63l10.64-11.2,10.64-11.2,74.17,70.52c-3.34,3.96-6.87,7.73-10.52,11.38-3.59,3.65-7.36,7.18-11.32,10.52"/>
+    <path d="M48.72,340.45c3.34,3.96,6.87,7.73,10.52,11.38,3.59,3.65,7.36,7.18,11.32,10.52l73.61-70.02-10.64-11.2-10.64-11.2-74.17,70.52Z"/>
+    <path d="M268.42,120.75c3.34,3.96,6.87,7.73,10.52,11.38,3.59,3.65,7.36,7.18,11.32,10.52l73.61-70.02-10.64-11.2-10.64-11.2-74.17,70.52Z"/>
+  </g>
+  <text x="205" y="143" fill="#0b0b0e" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">NEMU AI</text>
+  <text x="92" y="270" fill="#0b0b0e" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="800">Marketplace Generasi Baru</text>
+  <text x="92" y="346" fill="#704bfd" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="800">Buatan Indonesia</text>
+  <text x="94" y="415" fill="#55555f" font-family="Arial, Helvetica, sans-serif" font-size="29">Belanja lebih personal, aman, dan mudah dengan bantuan AI.</text>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">
+    <rect x="92" y="466" width="190" height="54" rx="27" fill="#704bfd"/>
+    <text x="126" y="501" fill="#fff">Marketplace</text>
+    <rect x="298" y="466" width="218" height="54" rx="27" fill="#f8f8fb" stroke="#e0e0e7"/>
+    <text x="330" y="501" fill="#1a1a1f">Official Seller</text>
+    <rect x="532" y="466" width="206" height="54" rx="27" fill="#f8f8fb" stroke="#e0e0e7"/>
+    <text x="566" y="501" fill="#1a1a1f">Download App</text>
+  </g>
+  <text x="888" y="520" fill="#704bfd" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700">linkbio.nemu-ai.com</text>
+</svg>
