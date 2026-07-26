@@ -7,27 +7,44 @@ export const dynamic = "force-dynamic";
 
 const fallbackProfile: PublicProfile = {
   theme: "sunset",
-  name: "nemuai",
-  bio: "Your story, your links, all in one place.",
+  name: "nemu.ai",
+  bio: "Marketplace generasi baru Indonesia—lebih personal, aman, dan mudah dengan bantuan AI.",
+  profileImage: "/favicon.svg",
   links: [
     {
       id: 1,
+      title: "Website Resmi",
+      url: "https://nemu-ai.com/",
+      icon: "website",
+      color: "#704bfd",
+      enabled: true,
+    },
+    {
+      id: 2,
       title: "Instagram",
-      url: "https://instagram.com/",
+      url: "https://www.instagram.com/nemu_ai_/",
       icon: "instagram",
       color: "#e1306c",
       enabled: true,
     },
-  ],
-  products: [
     {
       id: 3,
-      title: "Creator Starter Pack",
-      price: "Rp99.000",
-      url: "https://example.com",
+      title: "TikTok",
+      url: "https://www.tiktok.com/@nemu_ai_",
+      icon: "tiktok",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 4,
+      title: "LinkedIn",
+      url: "https://www.linkedin.com/company/nemu-ai/",
+      icon: "linkedin",
+      color: "#0a66c2",
       enabled: true,
     },
   ],
+  products: [],
 };
 
 function cleanSlug(value: unknown) {

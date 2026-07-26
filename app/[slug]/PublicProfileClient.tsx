@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { IconType } from "react-icons";
+import { FaLinkedin } from "react-icons/fa6";
 import { FiExternalLink, FiGlobe, FiMail, FiShare2 } from "react-icons/fi";
 import {
   SiApplemusic,
@@ -72,6 +73,7 @@ const brandIcons: Record<string, IconType> = {
   spotify: SiSpotify,
   threads: SiThreads,
   facebook: SiFacebook,
+  linkedin: FaLinkedin,
   x: SiX,
   soundcloud: SiSoundcloud,
   snapchat: SiSnapchat,
@@ -116,7 +118,11 @@ export default function PublicProfileClient({
       <h1>@{profile.name || slug}</h1>
       <p className="standalone-bio">{profile.bio || "Your story, your links, all in one place."}</p>
       <div className="standalone-socials">
-        {profile.links.filter((link) => link.enabled && link.kind !== "collection").slice(0, 6).map((link) => <BrandIcon key={link.id} name={link.icon} />)}
+        {profile.links.filter((link) => link.enabled && link.kind !== "collection").slice(0, 6).map((link) => (
+          <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" aria-label={link.title}>
+            <BrandIcon name={link.icon} />
+          </a>
+        ))}
       </div>
       <section className="standalone-links">
         {profile.links.filter((link) => link.enabled).map((link) => link.kind === "collection" ? (

@@ -274,6 +274,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .standalone-profile-shell h1 { margin: 0; font-size: clamp(24px,5vw,31px); letter-spacing: -.035em; position: relative; z-index: 1; }
 .standalone-bio { margin: 12px auto 15px; max-width: 470px; opacity: .76; line-height: 1.5; position: relative; z-index: 1; }
 .standalone-socials { display: flex; justify-content: center; gap: 15px; min-height: 31px; align-items: center; margin-bottom: 15px; position: relative; z-index: 1; }
+.standalone-socials a { color: inherit; display: grid; place-items: center; padding: 4px; border-radius: 999px; transition: transform .18s, background-color .18s; }
+.standalone-socials a:hover { transform: translateY(-2px); background: rgba(255,255,255,.28); }
 .standalone-socials svg { width: 22px; height: 22px; }
 .standalone-links { display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 1; }
 .standalone-links > h2 { text-align: left; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin: 14px 0 -3px; opacity: .72; }

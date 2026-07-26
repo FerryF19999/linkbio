@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { IconType } from "react-icons";
+import { FaLinkedin } from "react-icons/fa6";
 import { FiExternalLink, FiGlobe, FiMail } from "react-icons/fi";
 import QRCode from "react-qr-code";
 import {
@@ -63,7 +64,7 @@ type WaitlistEntry = {
   createdAt: string;
 };
 
-type ProfileData = {
+export type ProfileData = {
   theme: string;
   links: LinkItem[];
   name: string;
@@ -99,6 +100,7 @@ const platforms: Platform[] = [
   { id: "spotify", name: "Spotify", icon: "spotify", color: "#1ed760", placeholder: "open.spotify.com/..." },
   { id: "threads", name: "Threads", icon: "threads", color: "#111111", placeholder: "@username" },
   { id: "facebook", name: "Facebook", icon: "facebook", color: "#1877f2", placeholder: "facebook.com/..." },
+  { id: "linkedin", name: "LinkedIn", icon: "linkedin", color: "#0a66c2", placeholder: "linkedin.com/company/..." },
   { id: "x", name: "X", icon: "x", color: "#111111", placeholder: "@username" },
   { id: "soundcloud", name: "SoundCloud", icon: "soundcloud", color: "#ff5500", placeholder: "soundcloud.com/..." },
   { id: "snapchat", name: "Snapchat", icon: "snapchat", color: "#fffc00", placeholder: "@username" },
@@ -117,6 +119,7 @@ const iconMap: Record<string, IconType> = {
   spotify: SiSpotify,
   threads: SiThreads,
   facebook: SiFacebook,
+  linkedin: FaLinkedin,
   x: SiX,
   soundcloud: SiSoundcloud,
   snapchat: SiSnapchat,
@@ -870,12 +873,18 @@ function Dashboard({
   );
 }
 
-export default function ClientDashboard() {
+export default function ClientDashboard({ initialProfile }: { initialProfile?: ProfileData | null }) {
   const [ready, setReady] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
+      if (initialProfile?.complete) {
+        localStorage.setItem("linkspark-profile", JSON.stringify(initialProfile));
+        setProfile(initialProfile);
+        setReady(true);
+        return;
+      }
       try {
         const saved = localStorage.getItem("linkspark-profile");
         setProfile(saved ? JSON.parse(saved) : null);
@@ -884,7 +893,7 @@ export default function ClientDashboard() {
       }
       setReady(true);
     });
-  }, []);
+  }, [initialProfile]);
 
   const dashboardData = useMemo(() => profile ? {
     theme: profile.theme,
