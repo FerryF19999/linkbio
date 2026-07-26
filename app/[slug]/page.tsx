@@ -31,8 +31,8 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 3,
-      title: "NEMU AI — Website Resmi",
-      url: "https://nemu-ai.com/",
+      title: "Belanja di Marketplace NEMU AI",
+      url: "https://shop.nemu-ai.com/",
       icon: "website",
       color: "#704bfd",
       enabled: true,
