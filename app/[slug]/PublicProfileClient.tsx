@@ -28,6 +28,7 @@ export type PublicLink = {
   icon: string;
   color: string;
   enabled: boolean;
+  image?: string;
   kind?: "link" | "collection";
 };
 
@@ -50,6 +51,7 @@ export type PublicProfile = {
 };
 
 const themeStyles: Record<string, { bg: string; text: string; button: string; buttonText: string; outline?: boolean }> = {
+  classic: { bg: "#969696", text: "#ffffff", button: "#ffffff", buttonText: "#666666" },
   midnight: { bg: "#0a0a0a", text: "#ffffff", button: "#202020", buttonText: "#ffffff" },
   sunset: { bg: "linear-gradient(160deg,#bdeef1 0%,#e8d7ef 45%,#f06448 100%)", text: "#251b29", button: "#ffffff", buttonText: "#251b29" },
   grid: { bg: "#5b3034", text: "#fff6de", button: "#fff2d0", buttonText: "#5b3034" },
@@ -85,6 +87,8 @@ const brandIcons: Record<string, IconType> = {
   external: FiExternalLink,
 };
 
+const socialIcons = new Set(["instagram", "tiktok", "linkedin", "youtube", "facebook", "x", "threads", "whatsapp"]);
+
 function BrandIcon({ name }: { name: string }) {
   const Icon = brandIcons[name] ?? FiExternalLink;
   return <Icon aria-hidden="true" />;
@@ -110,7 +114,7 @@ export default function PublicProfileClient({
   };
 
   return (
-    <main className="standalone-profile-shell" style={{ background: theme.bg, color: theme.text }}>
+    <main className="standalone-profile-shell" data-theme={profile.theme} style={{ background: theme.bg, color: theme.text }}>
       <button className="standalone-share" onClick={share} aria-label="Share this profile"><FiShare2 /></button>
       <div className={`standalone-avatar ${profile.profileImage ? "has-image" : ""}`} style={profile.profileImage ? { backgroundImage: `url(${profile.profileImage})` } : undefined}>
         {profile.profileImage ? "" : (profile.name || "NF").slice(0, 2).toUpperCase()}
@@ -118,7 +122,7 @@ export default function PublicProfileClient({
       <h1>@{profile.name || slug}</h1>
       <p className="standalone-bio">{profile.bio || "Your story, your links, all in one place."}</p>
       <div className="standalone-socials">
-        {profile.links.filter((link) => link.enabled && link.kind !== "collection").slice(0, 6).map((link) => (
+        {profile.links.filter((link) => link.enabled && link.kind !== "collection" && socialIcons.has(link.icon)).slice(0, 6).map((link) => (
           <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" aria-label={link.title}>
             <BrandIcon name={link.icon} />
           </a>
@@ -129,7 +133,13 @@ export default function PublicProfileClient({
           <h2 key={link.id}>{link.title}</h2>
         ) : (
           <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}>
-            <BrandIcon name={link.icon} /><strong>{link.title}</strong><span>•••</span>
+            <span
+              className={`standalone-link-media ${link.image ? "has-image" : ""}`}
+              style={link.image ? { backgroundImage: `url(${link.image})` } : undefined}
+            >
+              {link.image ? null : <BrandIcon name={link.icon} />}
+            </span>
+            <strong>{link.title}</strong><span>•••</span>
           </a>
         ))}
         {(profile.products ?? []).filter((product) => product.enabled).map((product) => (

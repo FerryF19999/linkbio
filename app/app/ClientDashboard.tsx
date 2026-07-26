@@ -40,6 +40,7 @@ type LinkItem = {
   color: string;
   enabled: boolean;
   clicks: number;
+  image?: string;
   kind?: "link" | "collection";
 };
 
@@ -145,6 +146,7 @@ function SocialIcon({ name, title }: { name: string; title?: string }) {
 }
 
 const themes: Theme[] = [
+  { id: "classic", name: "Classic", bg: "#969696", text: "#ffffff", button: "#ffffff", buttonText: "#666666" },
   { id: "midnight", name: "Midnight", bg: "#0a0a0a", text: "#ffffff", button: "#202020", buttonText: "#ffffff" },
   { id: "sunset", name: "Sunset", bg: "linear-gradient(160deg,#bdeef1 0%,#e8d7ef 45%,#f06448 100%)", text: "#251b29", button: "#ffffff", buttonText: "#251b29" },
   { id: "grid", name: "Mulberry", bg: "#5b3034", text: "#fff6de", button: "#fff2d0", buttonText: "#5b3034", pattern: "grid" },
@@ -402,7 +404,13 @@ function PublicPreview({
                 onLinkClick?.(link.id);
               }}
             >
-              <span><SocialIcon name={link.icon} title={link.title} /></span><strong>{link.title || "Untitled link"}</strong><b>•••</b>
+              <span
+                className={link.image ? "preview-link-image" : undefined}
+                style={link.image ? { backgroundImage: `url(${link.image})` } : undefined}
+              >
+                {link.image ? null : <SocialIcon name={link.icon} title={link.title} />}
+              </span>
+              <strong>{link.title || "Untitled link"}</strong><b>•••</b>
             </a>
           ))}
         {products.filter((product) => product.enabled).map((product) => (
