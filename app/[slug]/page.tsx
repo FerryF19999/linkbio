@@ -82,6 +82,14 @@ const fallbackProfile: PublicProfile = {
       image: "/favicon.svg",
     },
     {
+      id: 9,
+      title: "Snap List Sell",
+      url: "https://cekhargadisini.com/",
+      icon: "website",
+      color: "#704bfd",
+      enabled: true,
+    },
+    {
       id: 4,
       title: "Apply Content Creator",
       url: "mailto:info@nemu-ai.com?subject=Apply%20Content%20Creator%20NEMU%20AI",

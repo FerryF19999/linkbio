@@ -425,7 +425,7 @@ function PublicPreview({
           <div><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>
         </form>
       )}
-      <div className="preview-brand"><strong>NEMU Link Bio</strong><small>Buatan Indonesia 🇮🇩 Powered by NEMU AI</small></div>
+      <div className="preview-brand"><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div>
     </div>
   );
 }
