@@ -3,7 +3,7 @@
 A responsive link-in-bio builder with a public landing page, waitlist,
 admin-only dashboard, shareable profiles, QR codes, and email capture.
 
-Production: <https://linkbio-one-amber.vercel.app>
+Production: <https://linkbio.nemu-ai.com>
 
 ## Stack
 

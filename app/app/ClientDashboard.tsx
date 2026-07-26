@@ -87,6 +87,9 @@ type Theme = {
   pattern?: string;
 };
 
+const PUBLIC_PROFILE_ID = "nemu-ai";
+const PUBLIC_PROFILE_ORIGIN = "https://linkbio.nemu-ai.com";
+
 const platforms: Platform[] = [
   { id: "instagram", name: "Instagram", icon: "instagram", color: "#e1306c", brandBg: "linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)", placeholder: "@username" },
   { id: "whatsapp", name: "WhatsApp", icon: "whatsapp", color: "#25d366", placeholder: "+62 812..." },
@@ -435,8 +438,7 @@ function Dashboard({
   ]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>(initial.subscribers ?? []);
   const [emailCapture, setEmailCapture] = useState(initial.emailCapture ?? false);
-  const [publicId, setPublicId] = useState(initial.publicId ?? "");
-  const [editToken, setEditToken] = useState("");
+  const [publicId, setPublicId] = useState(PUBLIC_PROFILE_ID);
   const [showArchive, setShowArchive] = useState(false);
   const [mobilePreview, setMobilePreview] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -448,24 +450,15 @@ function Dashboard({
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
-  const publicUrl = `https://linkbio-one-amber.vercel.app/${publicId || "profile"}`;
+  const publicUrl = `${PUBLIC_PROFILE_ORIGIN}/${PUBLIC_PROFILE_ID}`;
 
   useEffect(() => {
     queueMicrotask(() => {
-      let savedId = localStorage.getItem("linkspark-public-id") || initial.publicId || "";
-      let savedToken = localStorage.getItem("linkspark-edit-token") || "";
-      if (!savedId) {
-        savedId = `${crypto.randomUUID().replaceAll("-", "")}${crypto.randomUUID().replaceAll("-", "")}`;
-        localStorage.setItem("linkspark-public-id", savedId);
-      }
-      if (!savedToken) {
-        savedToken = `${crypto.randomUUID()}${crypto.randomUUID()}`;
-        localStorage.setItem("linkspark-edit-token", savedToken);
-      }
-      setPublicId(savedId);
-      setEditToken(savedToken);
+      localStorage.setItem("linkspark-public-id", PUBLIC_PROFILE_ID);
+      localStorage.removeItem("linkspark-edit-token");
+      setPublicId(PUBLIC_PROFILE_ID);
     });
-  }, [initial.publicId]);
+  }, []);
 
   useEffect(() => {
     const savedProfile = {
@@ -482,16 +475,16 @@ function Dashboard({
       complete: true,
     };
     localStorage.setItem("linkspark-profile", JSON.stringify(savedProfile));
-    if (!publicId || !editToken) return;
+    if (!publicId) return;
     const syncTimer = window.setTimeout(() => {
       void fetch("/api/profile", {
         method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${editToken}` },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ publicId, profile: savedProfile }),
       });
     }, 700);
     return () => window.clearTimeout(syncTimer);
-  }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture, publicId, editToken]);
+  }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture, publicId]);
 
   useEffect(() => {
     if (activeNav !== "Waitlist") return;
@@ -867,7 +860,7 @@ function Dashboard({
 
       <aside className={`preview-pane ${mobilePreview ? "open" : ""}`}>
         <div className="preview-pane-top">
-          <button onClick={copyProfile}>linkbio-one-amber.vercel.app/{publicId ? `${publicId.slice(0, 10)}…` : "profile"}　↗</button>
+          <button onClick={copyProfile}>linkbio.nemu-ai.com/{PUBLIC_PROFILE_ID}　↗</button>
           <button className="close-preview" onClick={() => setMobilePreview(false)}>×</button>
         </div>
         <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} profileImage={profileImage} products={products} emailCapture={emailCapture} onLinkClick={recordClick} onSubscribe={addSubscriber} /></div>

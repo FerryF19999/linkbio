@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { getNemuUser, isAdminUser } from "../../auth";
 
 function cleanPublicId(value: unknown) {
   return String(value ?? "")
@@ -8,17 +9,11 @@ function cleanPublicId(value: unknown) {
     .slice(0, 96);
 }
 
-async function hashToken(value: string) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const publicId = cleanPublicId(url.searchParams.get("id"));
-    if (publicId.length < 24) return Response.json({ error: "invalid profile id" }, { status: 400 });
+    if (publicId.length < 3) return Response.json({ error: "invalid profile id" }, { status: 400 });
     const db = createSupabaseAdminClient();
     const { data: profile, error } = await db
       .from("profiles")
@@ -53,12 +48,15 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getNemuUser();
+    if (!isAdminUser(user)) {
+      return Response.json({ error: "Admin access required." }, { status: 403 });
+    }
+
     const payload = (await request.json()) as { publicId?: string; profile?: unknown };
     const publicId = cleanPublicId(payload.publicId);
-    const authorization = request.headers.get("authorization") ?? "";
-    const editToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-    if (publicId.length < 24 || editToken.length < 48) {
-      return Response.json({ error: "valid profile credentials are required" }, { status: 401 });
+    if (publicId.length < 3) {
+      return Response.json({ error: "valid profile id is required" }, { status: 400 });
     }
     if (!payload.profile || typeof payload.profile !== "object") {
       return Response.json({ error: "profile is required" }, { status: 400 });
@@ -68,20 +66,10 @@ export async function POST(request: Request) {
       return Response.json({ error: "profile is too large" }, { status: 413 });
     }
     const db = createSupabaseAdminClient();
-    const editTokenHash = await hashToken(editToken);
-    const { data: existing, error: existingError } = await db
-      .from("profiles")
-      .select("edit_token_hash")
-      .eq("public_id", publicId)
-      .maybeSingle();
-    if (existingError) throw existingError;
-    if (existing && existing.edit_token_hash !== editTokenHash) {
-      return Response.json({ error: "profile credentials do not match" }, { status: 403 });
-    }
     const updatedAt = new Date().toISOString();
     const { error: upsertError } = await db.from("profiles").upsert({
       public_id: publicId,
-      edit_token_hash: editTokenHash,
+      edit_token_hash: "supabase-admin",
       data: payload.profile,
       updated_at: updatedAt,
     }, {
