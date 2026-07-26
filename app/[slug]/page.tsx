@@ -51,7 +51,7 @@ export function generateMetadata(): Metadata {
 const fallbackProfile: PublicProfile = {
   theme: "classic",
   name: "nemu.ai",
-  bio: "Marketplace generasi baru Indonesia, lebih personal, aman, dan mudah dengan bantuan AI.",
+  bio: "Marketplace generasi baru buatan Indonesia 🇮🇩, lebih personal, aman, dan mudah dengan bantuan AI.",
   profileImage: "/favicon.svg",
   links: [
     {
