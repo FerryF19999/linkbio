@@ -51,7 +51,7 @@ export type PublicProfile = {
 };
 
 const themeStyles: Record<string, { bg: string; text: string; button: string; buttonText: string; outline?: boolean }> = {
-  classic: { bg: "#969696", text: "#ffffff", button: "#ffffff", buttonText: "#666666" },
+  classic: { bg: "#f8f8fb", text: "#0b0b0e", button: "#ffffff", buttonText: "#1a1a1f" },
   midnight: { bg: "#0a0a0a", text: "#ffffff", button: "#202020", buttonText: "#ffffff" },
   sunset: { bg: "linear-gradient(160deg,#bdeef1 0%,#e8d7ef 45%,#f06448 100%)", text: "#251b29", button: "#ffffff", buttonText: "#251b29" },
   grid: { bg: "#5b3034", text: "#fff6de", button: "#fff2d0", buttonText: "#5b3034" },
