@@ -22,10 +22,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "256x256", type: "image/x-icon" },
-      { url: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
+      { url: "/favicon.ico?v=nemu-20260726", sizes: "256x256", type: "image/x-icon" },
+      { url: "/favicon.svg?v=nemu-20260726", sizes: "any", type: "image/svg+xml" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "/favicon.ico?v=nemu-20260726",
+    apple: [
+      { url: "/apple-touch-icon.png?v=nemu-20260726", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 

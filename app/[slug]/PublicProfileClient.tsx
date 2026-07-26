@@ -154,7 +154,7 @@ export default function PublicProfileClient({
           {!joined && <div><input type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>}
         </form>
       )}
-      <footer><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></footer>
+      <footer><strong>NEMU Link Bio</strong><small>Buatan Indonesia 🇮🇩 Powered by NEMU AI</small></footer>
     </main>
   );
 }

@@ -352,7 +352,7 @@ function Onboarding({
         <button className="primary-button" onClick={next} disabled={step === 1 && selectedPlatforms.length === 0}>
           {step === 3 ? "Build my page" : "Continue"} <b>→</b>
         </button>
-        <span>Powered by NEMU AI</span>
+        <span>Buatan Indonesia 🇮🇩</span>
       </footer>
     </main>
   );
@@ -425,7 +425,7 @@ function PublicPreview({
           <div><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>
         </form>
       )}
-      <div className="preview-brand"><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div>
+      <div className="preview-brand"><strong>NEMU Link Bio</strong><small>Buatan Indonesia 🇮🇩 Powered by NEMU AI</small></div>
     </div>
   );
 }
@@ -626,7 +626,7 @@ function Dashboard({
       <aside className="sidebar">
         <div className="brand-lockup">
           <span>N</span>
-          <div><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div>
+          <div><strong>NEMU Link Bio</strong><small>Buatan Indonesia 🇮🇩</small></div>
         </div>
         <button className="account"><span>NF</span><strong>{name || "creator"}</strong><b>⌄</b></button>
         <nav>
