@@ -6,40 +6,55 @@ import PublicProfileClient, {
 
 export const dynamic = "force-dynamic";
 
-const profileTitle = "NEMU AI | Marketplace Indonesia";
-const profileDescription = "Temukan marketplace NEMU AI, daftar Official Seller, download aplikasi, dan ikuti Instagram, Threads, X, TikTok, YouTube, serta LinkedIn resmi.";
+const nemuProfileTitle = "NEMU AI | Marketplace Indonesia";
+const nemuProfileDescription = "Temukan marketplace NEMU AI, daftar Official Seller, download aplikasi, dan ikuti Instagram, Threads, X, TikTok, YouTube, serta LinkedIn resmi.";
+const cekHargaProfileTitle = "Cek Harga di Sini | Snap List Sell by NEMU AI";
+const cekHargaProfileDescription = "Foto produk sekali, AI bantu membuat listing dan memberikan rekomendasi harga. Coba Snap List Sell gratis di cekhargadisini.com.";
 
-export function generateMetadata(): Metadata {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const slug = cleanSlug((await params).slug) || "nemu-ai";
+  const isCekHarga = slug === "cekhargadisini";
+  const title = isCekHarga ? cekHargaProfileTitle : nemuProfileTitle;
+  const description = isCekHarga ? cekHargaProfileDescription : nemuProfileDescription;
+  const canonical = isCekHarga ? "/cekhargadisini" : "/nemu-ai";
+  const image = isCekHarga ? "/og-cekhargadisini.png" : "/og-nemu-ai.png";
+
   return {
     title: {
-      absolute: profileTitle,
+      absolute: title,
     },
-    description: profileDescription,
-    keywords: ["NEMU AI", "marketplace Indonesia", "official seller", "aplikasi NEMU AI", "belanja online Indonesia"],
+    description,
+    keywords: isCekHarga
+      ? ["cek harga produk", "Snap List Sell", "AI listing produk", "rekomendasi harga", "NEMU AI"]
+      : ["NEMU AI", "marketplace Indonesia", "official seller", "aplikasi NEMU AI", "belanja online Indonesia"],
     alternates: {
-      canonical: "/nemu-ai",
+      canonical,
     },
     openGraph: {
-      title: profileTitle,
-      description: profileDescription,
-      url: "/nemu-ai",
-      siteName: "NEMU AI",
+      title,
+      description,
+      url: canonical,
+      siteName: isCekHarga ? "Cek Harga di Sini" : "NEMU AI",
       locale: "id_ID",
       type: "website",
       images: [
         {
-          url: "/og-nemu-ai.png",
+          url: image,
           width: 1200,
           height: 630,
-          alt: "NEMU AI Marketplace Generasi Baru Indonesia",
+          alt: isCekHarga ? "Cek Harga di Sini dengan Snap List Sell by NEMU AI" : "NEMU AI Marketplace Generasi Baru Indonesia",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: profileTitle,
-      description: profileDescription,
-      images: ["/og-nemu-ai.png"],
+      title,
+      description,
+      images: [image],
     },
     robots: {
       index: true,
@@ -151,6 +166,101 @@ const fallbackProfile: PublicProfile = {
   products: [],
 };
 
+const cekHargaFallbackProfile: PublicProfile = {
+  theme: "classic",
+  name: "cekhargadisini",
+  bio: "Snap. List. Sell. Foto 1x, AI bantu buat listing dan kasih harga.",
+  profileImage: "/favicon.svg",
+  links: [
+    {
+      id: 101,
+      title: "Coba Snap List Sell Gratis",
+      url: "https://cekhargadisini.com/",
+      icon: "website",
+      color: "#704bfd",
+      enabled: true,
+      image: "/favicon.svg",
+      featured: true,
+    },
+    {
+      id: 102,
+      title: "Download NEMU AI di Google Play",
+      url: "https://play.google.com/store/apps/details?id=com.nemump.nemumobile&pcampaignid=web_share",
+      icon: "external",
+      color: "#704bfd",
+      enabled: true,
+      image: "/nemu-app-icon.webp",
+    },
+    {
+      id: 103,
+      title: "Belanja di Marketplace NEMU AI",
+      url: "https://shop.nemu-ai.com/",
+      icon: "website",
+      color: "#704bfd",
+      enabled: true,
+      image: "/favicon.svg",
+    },
+    {
+      id: 104,
+      title: "NEMU AI Link Bio",
+      url: "https://linkbio.nemu-ai.com/nemu-ai",
+      icon: "external",
+      color: "#704bfd",
+      enabled: true,
+      image: "/favicon.svg",
+    },
+    {
+      id: 105,
+      title: "Instagram @nemuaiofficial",
+      url: "https://www.instagram.com/nemuaiofficial?igsh=MXY4ZWdyMXFxbTRsYQ==",
+      icon: "instagram",
+      color: "#e1306c",
+      enabled: true,
+    },
+    {
+      id: 106,
+      title: "Threads @nemuaiofficial",
+      url: "https://www.threads.com/@nemuaiofficial",
+      icon: "threads",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 107,
+      title: "X @NEMU__AI",
+      url: "https://x.com/NEMU__AI",
+      icon: "x",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 108,
+      title: "YouTube @NEMU_AI",
+      url: "https://www.youtube.com/@NEMU_AI",
+      icon: "youtube",
+      color: "#ff0033",
+      enabled: true,
+    },
+    {
+      id: 109,
+      title: "TikTok @nemu_ai_",
+      url: "https://www.tiktok.com/@nemu_ai_",
+      icon: "tiktok",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 110,
+      title: "LinkedIn Nemu AI",
+      url: "https://www.linkedin.com/company/nemu-ai/",
+      icon: "linkedin",
+      color: "#0a66c2",
+      enabled: true,
+    },
+  ],
+  products: [],
+};
+
 function cleanSlug(value: unknown) {
   return String(value ?? "")
     .toLowerCase()
@@ -165,7 +275,8 @@ export default async function PublicProfilePage({
   params: Promise<{ slug: string }>;
 }) {
   const slug = cleanSlug((await params).slug) || "nemu-ai";
-  let profile = fallbackProfile;
+  const routeFallback = slug === "cekhargadisini" ? cekHargaFallbackProfile : fallbackProfile;
+  let profile = routeFallback;
 
   try {
     const db = createSupabaseAdminClient();
@@ -179,7 +290,7 @@ export default async function PublicProfilePage({
     if (data?.data && typeof data.data === "object") {
       const stored = data.data as Partial<PublicProfile>;
       profile = {
-        theme: stored.theme || fallbackProfile.theme,
+        theme: stored.theme || routeFallback.theme,
         links: Array.isArray(stored.links) ? stored.links : [],
         name: stored.name || slug,
         bio: stored.bio || "",
