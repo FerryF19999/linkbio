@@ -56,6 +56,12 @@ export async function generateMetadata({
       description,
       images: [image],
     },
+    icons: isCekHarga
+      ? {
+          icon: [{ url: "/cekhargadisini-logo.svg", sizes: "any", type: "image/svg+xml" }],
+          shortcut: "/cekhargadisini-logo.svg",
+        }
+      : undefined,
     robots: {
       index: true,
       follow: true,
@@ -170,7 +176,7 @@ const cekHargaFallbackProfile: PublicProfile = {
   theme: "classic",
   name: "cekhargadisini",
   bio: "Foto barangnya, AI yang cek harganya. Estimasi harga pasar Indonesia dalam hitungan detik, gratis.",
-  profileImage: "/favicon.svg",
+  profileImage: "/cekhargadisini-logo.svg",
   links: [
     {
       id: 101,
@@ -179,7 +185,7 @@ const cekHargaFallbackProfile: PublicProfile = {
       icon: "website",
       color: "#704bfd",
       enabled: true,
-      image: "/favicon.svg",
+      image: "/cekhargadisini-logo.svg",
       featured: true,
     },
     {
@@ -237,6 +243,22 @@ const cekHargaFallbackProfile: PublicProfile = {
     },
     {
       id: 108,
+      title: "TikTok @cekhargadisini",
+      url: "https://www.tiktok.com/@cekhargadisini",
+      icon: "tiktok",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 109,
+      title: "Threads @cekhargadisini",
+      url: "https://www.threads.com/@cekhargadisini",
+      icon: "threads",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 110,
       title: "X @cekhargadisini",
       url: "https://x.com/cekhargadisini",
       icon: "x",
