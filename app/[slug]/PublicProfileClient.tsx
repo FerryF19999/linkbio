@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { IconType } from "react-icons";
 import { FaLinkedin } from "react-icons/fa6";
 import { FiExternalLink, FiGlobe, FiMail, FiShare2 } from "react-icons/fi";
@@ -105,6 +105,44 @@ export default function PublicProfileClient({
   const profile = initialProfile;
   const [joined, setJoined] = useState(false);
   const theme = themeStyles[profile.theme] ?? themeStyles.sunset;
+
+  useEffect(() => {
+    if (navigator.doNotTrack === "1") return;
+
+    const sessionKey = "nemu-linkbio-analytics-session";
+    let sessionId = "";
+    try {
+      sessionId = sessionStorage.getItem(sessionKey) ?? "";
+      if (!sessionId) {
+        sessionId =
+          typeof crypto.randomUUID === "function"
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        sessionStorage.setItem(sessionKey, sessionId);
+      }
+
+      const viewKey = `nemu-linkbio-viewed:${slug}:${sessionId}`;
+      if (sessionStorage.getItem(viewKey)) return;
+      sessionStorage.setItem(viewKey, "1");
+
+      void fetch("/api/analytics", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          publicId: slug,
+          sessionId,
+          referrer: document.referrer,
+        }),
+        keepalive: true,
+      }).then((response) => {
+        if (!response.ok) sessionStorage.removeItem(viewKey);
+      }).catch(() => {
+        sessionStorage.removeItem(viewKey);
+      });
+    } catch {
+      // Analytics must never block the public profile experience.
+    }
+  }, [slug]);
 
   const share = async () => {
     if (navigator.share) {

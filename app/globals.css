@@ -219,7 +219,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .chart-card { grid-column: 1/-1; }
 .fake-chart { height: 220px; display: flex; align-items: end; gap: 13px; padding: 15px 8px 25px; border-bottom: 1px solid #ddd; }
 .fake-chart i { flex: 1; background: linear-gradient(#934dff,#6b25ed); border-radius: 8px 8px 2px 2px; position: relative; }
+.fake-chart i b { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 10px; color: #5f2bd8; }
 .fake-chart i span { position: absolute; bottom: -23px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 10px; color: #777; }
+.analytics-state { min-height: 220px; margin: 0; display: grid; place-items: center; color: #777; }
+.analytics-state.error { color: #b42318; }
 .empty-panel { margin: 90px auto; width: min(560px,calc(100% - 50px)); text-align: center; padding: 50px; background: #f7f5ff; border-radius: 30px; }
 .empty-panel > span { font-size: 50px; color: var(--purple); }
 .empty-panel h2 { font-size: 28px; letter-spacing: -.03em; }

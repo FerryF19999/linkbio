@@ -66,6 +66,24 @@ type WaitlistEntry = {
   createdAt: string;
 };
 
+type TrafficDay = {
+  date: string;
+  label: string;
+  views: number;
+};
+
+type TrafficStats = {
+  total: number;
+  today: number;
+  last7Days: number;
+  daily: TrafficDay[];
+};
+
+type TrafficResponse = {
+  profiles?: Record<string, TrafficStats>;
+  error?: string;
+};
+
 export type ProfileData = {
   theme: string;
   links: LinkItem[];
@@ -460,10 +478,21 @@ function Dashboard({
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [waitlistError, setWaitlistError] = useState("");
   const [waitlistVersion, setWaitlistVersion] = useState(0);
+  const [trafficProfiles, setTrafficProfiles] = useState<Record<string, TrafficStats>>({});
+  const [trafficLoading, setTrafficLoading] = useState(false);
+  const [trafficError, setTrafficError] = useState("");
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
   const publicUrl = `${PUBLIC_PROFILE_ORIGIN}/${PUBLIC_PROFILE_ID}`;
+  const emptyTraffic: TrafficStats = { total: 0, today: 0, last7Days: 0, daily: [] };
+  const nemuTraffic = trafficProfiles["nemu-ai"] ?? emptyTraffic;
+  const cekHargaTraffic = trafficProfiles.cekhargadisini ?? emptyTraffic;
+  const combinedDaily = Array.from({ length: 7 }, (_, index) => ({
+    label: nemuTraffic.daily[index]?.label ?? cekHargaTraffic.daily[index]?.label ?? "",
+    views: (nemuTraffic.daily[index]?.views ?? 0) + (cekHargaTraffic.daily[index]?.views ?? 0),
+  }));
+  const maxDailyViews = Math.max(1, ...combinedDaily.map((day) => day.views));
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -525,6 +554,33 @@ function Dashboard({
       cancelled = true;
     };
   }, [activeNav, waitlistVersion]);
+
+  useEffect(() => {
+    if (activeNav !== "Insights") return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setTrafficLoading(true);
+      setTrafficError("");
+
+      void fetch("/api/analytics", { cache: "no-store" })
+        .then(async (response) => {
+          const result = (await response.json()) as TrafficResponse;
+          if (!response.ok) throw new Error(result.error || "Unable to load traffic.");
+          if (!cancelled) setTrafficProfiles(result.profiles ?? {});
+        })
+        .catch((error) => {
+          if (!cancelled) setTrafficError(error instanceof Error ? error.message : "Unable to load traffic.");
+        })
+        .finally(() => {
+          if (!cancelled) setTrafficLoading(false);
+        });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeNav]);
 
   const addLink = () => {
     const id = ++nextId.current;
@@ -769,9 +825,45 @@ function Dashboard({
 
         {activeNav === "Insights" && (
           <div className="insights-panel">
-            <div className="metric-card"><span>TOTAL VIEWS</span><strong>1,284</strong><small>↑ 18.4% this month</small></div>
-            <div className="metric-card"><span>LINK CLICKS</span><strong>{links.reduce((sum, link) => sum + link.clicks, 0)}</strong><small>↑ 9.2% this month</small></div>
-            <div className="chart-card"><div className="section-title"><div><h2>Performance</h2><p>Profile activity over the last 7 days.</p></div></div><div className="fake-chart">{[32, 45, 38, 68, 57, 84, 76].map((h, i) => <i key={i} style={{ height: `${h}%` }}><span>{["M", "T", "W", "T", "F", "S", "S"][i]}</span></i>)}</div></div>
+            <div className="metric-card">
+              <span>TOTAL TRAFFIC</span>
+              <strong>{(nemuTraffic.total + cekHargaTraffic.total).toLocaleString("id-ID")}</strong>
+              <small>{nemuTraffic.today + cekHargaTraffic.today} kunjungan hari ini</small>
+            </div>
+            <div className="metric-card">
+              <span>NEMU AI</span>
+              <strong>{nemuTraffic.total.toLocaleString("id-ID")}</strong>
+              <small>{nemuTraffic.last7Days} dalam 7 hari terakhir</small>
+            </div>
+            <div className="metric-card">
+              <span>CEK HARGA DI SINI</span>
+              <strong>{cekHargaTraffic.total.toLocaleString("id-ID")}</strong>
+              <small>{cekHargaTraffic.last7Days} dalam 7 hari terakhir</small>
+            </div>
+            <div className="metric-card">
+              <span>LINK CLICKS</span>
+              <strong>{links.reduce((sum, link) => sum + link.clicks, 0)}</strong>
+              <small>Interaksi link profil NEMU AI</small>
+            </div>
+            <div className="chart-card">
+              <div className="section-title">
+                <div><h2>Traffic 7 Hari</h2><p>Gabungan kunjungan halaman NEMU AI dan Cek Harga di Sini.</p></div>
+              </div>
+              {trafficLoading ? (
+                <p className="analytics-state">Memuat traffic…</p>
+              ) : trafficError ? (
+                <p className="analytics-state error">{trafficError}</p>
+              ) : (
+                <div className="fake-chart">
+                  {combinedDaily.map((day, index) => (
+                    <i key={`${day.label}-${index}`} style={{ height: `${Math.max(5, (day.views / maxDailyViews) * 100)}%` }}>
+                      <b>{day.views}</b>
+                      <span>{day.label}</span>
+                    </i>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
