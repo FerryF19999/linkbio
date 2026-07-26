@@ -235,8 +235,8 @@ const cekHargaFallbackProfile: PublicProfile = {
     },
     {
       id: 107,
-      title: "Instagram @cekhargadisini",
-      url: "https://www.instagram.com/cekhargadisini/",
+      title: "Instagram @cekhargadisinicom",
+      url: "https://www.instagram.com/cekhargadisinicom/",
       icon: "instagram",
       color: "#e1306c",
       enabled: true,
