@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 
 const nemuProfileTitle = "NEMU AI | Marketplace Indonesia";
 const nemuProfileDescription = "Temukan marketplace NEMU AI, daftar Official Seller, download aplikasi, dan ikuti Instagram, Threads, X, TikTok, YouTube, serta LinkedIn resmi.";
-const cekHargaProfileTitle = "Cek Harga di Sini | Snap List Sell by NEMU AI";
-const cekHargaProfileDescription = "Foto produk sekali, AI bantu membuat listing dan memberikan rekomendasi harga. Coba Snap List Sell gratis di cekhargadisini.com.";
+const cekHargaProfileTitle = "Cek Harga Barang Pakai AI | Cek Harga di Sini";
+const cekHargaProfileDescription = "Upload foto barangmu—mobil, motor, gadget, elektronik, dan lainnya. AI kasih estimasi harga pasar Indonesia dalam hitungan detik. Gratis.";
 
 export async function generateMetadata({
   params,
@@ -21,7 +21,7 @@ export async function generateMetadata({
   const title = isCekHarga ? cekHargaProfileTitle : nemuProfileTitle;
   const description = isCekHarga ? cekHargaProfileDescription : nemuProfileDescription;
   const canonical = isCekHarga ? "/cekhargadisini" : "/nemu-ai";
-  const image = isCekHarga ? "/og-cekhargadisini.png" : "/og-nemu-ai.png";
+  const image = "/og-nemu-ai.png";
 
   return {
     title: {
@@ -29,7 +29,7 @@ export async function generateMetadata({
     },
     description,
     keywords: isCekHarga
-      ? ["cek harga produk", "Snap List Sell", "AI listing produk", "rekomendasi harga", "NEMU AI"]
+      ? ["cek harga barang", "estimasi harga pasar", "AI cek harga", "harga pasar Indonesia", "NEMU AI"]
       : ["NEMU AI", "marketplace Indonesia", "official seller", "aplikasi NEMU AI", "belanja online Indonesia"],
     alternates: {
       canonical,
@@ -46,7 +46,7 @@ export async function generateMetadata({
           url: image,
           width: 1200,
           height: 630,
-          alt: isCekHarga ? "Cek Harga di Sini dengan Snap List Sell by NEMU AI" : "NEMU AI Marketplace Generasi Baru Indonesia",
+          alt: isCekHarga ? "Cek Harga Barang Pakai AI untuk Pasar Indonesia" : "NEMU AI Marketplace Generasi Baru Indonesia",
         },
       ],
     },
@@ -169,12 +169,12 @@ const fallbackProfile: PublicProfile = {
 const cekHargaFallbackProfile: PublicProfile = {
   theme: "classic",
   name: "cekhargadisini",
-  bio: "Snap. List. Sell. Foto 1x, AI bantu buat listing dan kasih harga.",
+  bio: "Foto barangnya, AI yang cek harganya. Estimasi harga pasar Indonesia dalam hitungan detik, gratis.",
   profileImage: "/favicon.svg",
   links: [
     {
       id: 101,
-      title: "Coba Snap List Sell Gratis",
+      title: "Cek Harga Barang Sekarang",
       url: "https://cekhargadisini.com/",
       icon: "website",
       color: "#704bfd",
@@ -184,6 +184,24 @@ const cekHargaFallbackProfile: PublicProfile = {
     },
     {
       id: 102,
+      title: "Lainnya dari NEMU AI",
+      url: "",
+      icon: "external",
+      color: "#704bfd",
+      enabled: true,
+      kind: "collection",
+    },
+    {
+      id: 103,
+      title: "Lihat Lebih Banyak di NEMU",
+      url: "https://shop.nemu-ai.com/products?utm_source=cekhargadisini&utm_medium=referral&utm_campaign=spill_section",
+      icon: "website",
+      color: "#704bfd",
+      enabled: true,
+      image: "/favicon.svg",
+    },
+    {
+      id: 104,
       title: "Download NEMU AI di Google Play",
       url: "https://play.google.com/store/apps/details?id=com.nemump.nemumobile&pcampaignid=web_share",
       icon: "external",
@@ -192,16 +210,7 @@ const cekHargaFallbackProfile: PublicProfile = {
       image: "/nemu-app-icon.webp",
     },
     {
-      id: 103,
-      title: "Belanja di Marketplace NEMU AI",
-      url: "https://shop.nemu-ai.com/",
-      icon: "website",
-      color: "#704bfd",
-      enabled: true,
-      image: "/favicon.svg",
-    },
-    {
-      id: 104,
+      id: 105,
       title: "NEMU AI Link Bio",
       url: "https://linkbio.nemu-ai.com/nemu-ai",
       icon: "external",
@@ -210,7 +219,16 @@ const cekHargaFallbackProfile: PublicProfile = {
       image: "/favicon.svg",
     },
     {
-      id: 105,
+      id: 106,
+      title: "Ikuti NEMU AI",
+      url: "",
+      icon: "external",
+      color: "#704bfd",
+      enabled: true,
+      kind: "collection",
+    },
+    {
+      id: 107,
       title: "Instagram @nemuaiofficial",
       url: "https://www.instagram.com/nemuaiofficial?igsh=MXY4ZWdyMXFxbTRsYQ==",
       icon: "instagram",
@@ -218,7 +236,7 @@ const cekHargaFallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 106,
+      id: 108,
       title: "Threads @nemuaiofficial",
       url: "https://www.threads.com/@nemuaiofficial",
       icon: "threads",
@@ -226,7 +244,7 @@ const cekHargaFallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 107,
+      id: 109,
       title: "X @NEMU__AI",
       url: "https://x.com/NEMU__AI",
       icon: "x",
@@ -234,7 +252,7 @@ const cekHargaFallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 108,
+      id: 110,
       title: "YouTube @NEMU_AI",
       url: "https://www.youtube.com/@NEMU_AI",
       icon: "youtube",
@@ -242,7 +260,7 @@ const cekHargaFallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 109,
+      id: 111,
       title: "TikTok @nemu_ai_",
       url: "https://www.tiktok.com/@nemu_ai_",
       icon: "tiktok",
@@ -250,7 +268,7 @@ const cekHargaFallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 110,
+      id: 112,
       title: "LinkedIn Nemu AI",
       url: "https://www.linkedin.com/company/nemu-ai/",
       icon: "linkedin",
