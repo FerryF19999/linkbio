@@ -7,7 +7,7 @@ import PublicProfileClient, {
 export const dynamic = "force-dynamic";
 
 const profileTitle = "NEMU AI | Marketplace Indonesia";
-const profileDescription = "Temukan marketplace NEMU AI, daftar Official Seller, download aplikasi, dan ikuti Instagram, TikTok, YouTube, serta LinkedIn resmi.";
+const profileDescription = "Temukan marketplace NEMU AI, daftar Official Seller, download aplikasi, dan ikuti Instagram, Threads, X, TikTok, YouTube, serta LinkedIn resmi.";
 
 export function generateMetadata(): Metadata {
   return {
@@ -109,6 +109,22 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 6,
+      title: "Threads @nemuaiofficial",
+      url: "https://www.threads.com/@nemuaiofficial",
+      icon: "threads",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 10,
+      title: "X @NEMU__AI",
+      url: "https://x.com/NEMU__AI",
+      icon: "x",
+      color: "#111111",
+      enabled: true,
+    },
+    {
+      id: 11,
       title: "YouTube @NEMU_AI",
       url: "https://www.youtube.com/@NEMU_AI",
       icon: "youtube",
