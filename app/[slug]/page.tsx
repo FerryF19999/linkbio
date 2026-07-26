@@ -40,6 +40,14 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 4,
+      title: "Apply Content Creator",
+      url: "mailto:info@nemu-ai.com?subject=Apply%20Content%20Creator%20NEMU%20AI",
+      icon: "email",
+      color: "#704bfd",
+      enabled: true,
+    },
+    {
+      id: 5,
       title: "Instagram @nemu_ai_",
       url: "https://www.instagram.com/nemu_ai_/",
       icon: "instagram",
@@ -47,7 +55,7 @@ const fallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 5,
+      id: 6,
       title: "TikTok @nemu_ai_",
       url: "https://www.tiktok.com/@nemu_ai_",
       icon: "tiktok",
@@ -55,7 +63,7 @@ const fallbackProfile: PublicProfile = {
       enabled: true,
     },
     {
-      id: 6,
+      id: 7,
       title: "LinkedIn Nemu AI",
       url: "https://www.linkedin.com/company/nemu-ai/",
       icon: "linkedin",
