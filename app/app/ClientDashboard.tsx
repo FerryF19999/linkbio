@@ -7,6 +7,7 @@ import { FaLinkedin } from "react-icons/fa6";
 import { FiExternalLink, FiGlobe, FiMail } from "react-icons/fi";
 import QRCode from "react-qr-code";
 import {
+  SiAppstore,
   SiApplemusic,
   SiFacebook,
   SiInstagram,
@@ -154,6 +155,7 @@ const platforms: Platform[] = [
 ];
 
 const iconMap: Record<string, IconType> = {
+  appstore: SiAppstore,
   instagram: SiInstagram,
   whatsapp: SiWhatsapp,
   tiktok: SiTiktok,

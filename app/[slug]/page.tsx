@@ -94,6 +94,15 @@ const fallbackProfile: PublicProfile = {
       image: "/nemu-app-icon.webp",
     },
     {
+      id: 12,
+      title: "Download NEMU AI di App Store",
+      url: "https://apps.apple.com/id/app/nemu-ai-marketplace/id6789514376",
+      icon: "appstore",
+      color: "#704bfd",
+      enabled: true,
+      image: "/nemu-app-icon.webp",
+    },
+    {
       id: 3,
       title: "Belanja di Marketplace NEMU AI",
       url: "https://shop.nemu-ai.com/",

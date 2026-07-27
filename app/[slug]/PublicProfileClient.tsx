@@ -5,6 +5,7 @@ import type { IconType } from "react-icons";
 import { FaLinkedin } from "react-icons/fa6";
 import { FiExternalLink, FiGlobe, FiMail, FiShare2 } from "react-icons/fi";
 import {
+  SiAppstore,
   SiApplemusic,
   SiFacebook,
   SiInstagram,
@@ -68,6 +69,7 @@ const themeStyles: Record<string, { bg: string; text: string; button: string; bu
 };
 
 const brandIcons: Record<string, IconType> = {
+  appstore: SiAppstore,
   instagram: SiInstagram,
   whatsapp: SiWhatsapp,
   tiktok: SiTiktok,
