@@ -225,6 +225,15 @@ const cekHargaFallbackProfile: PublicProfile = {
       image: "/nemu-app-icon.webp",
     },
     {
+      id: 111,
+      title: "Download NEMU AI di App Store",
+      url: "https://apps.apple.com/id/app/nemu-ai-marketplace/id6789514376",
+      icon: "appstore",
+      color: "#704bfd",
+      enabled: true,
+      image: "/nemu-app-icon.webp",
+    },
+    {
       id: 105,
       title: "NEMU AI Link Bio",
       url: "https://linkbio.nemu-ai.com/nemu-ai",
