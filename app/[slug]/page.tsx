@@ -128,7 +128,6 @@ const fallbackProfile: PublicProfile = {
       icon: "email",
       color: "#704bfd",
       enabled: true,
-      featured: true,
     },
     {
       id: 5,
