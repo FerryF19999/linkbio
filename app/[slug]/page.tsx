@@ -124,7 +124,7 @@ const fallbackProfile: PublicProfile = {
     {
       id: 4,
       title: "Apply UGC Creator — Paid Collaboration",
-      url: "mailto:info@nemu-ai.com?subject=Apply%20UGC%20Creator%20NEMU%20AI%20-%20Paid%20Collaboration&body=Halo%20Tim%20NEMU%20AI%2C%0A%0ASaya%20tertarik%20mendaftar%20sebagai%20UGC%20Creator%20untuk%20paid%20collaboration.%0A%0ANama%20lengkap%3A%0AUsia%3A%0ANomor%20WhatsApp%3A%0AInstagram%2FTikTok%3A%0ALink%20portofolio%20atau%20sample%20video%3A%0APerkenalan%20singkat%3A%0A%0ATerima%20kasih.",
+      url: "mailto:info@nemu-ai.com?subject=Apply%20UGC%20Creator%20NEMU%20AI%20-%20Paid%20Collaboration&body=Halo%20Tim%20NEMU%20AI%2C%0A%0ASaya%20ingin%20mendaftar%20sebagai%20UGC%20Creator%20NEMU%20AI.%0A%0ANama%3A%0ANomor%20WhatsApp%3A%0ALink%20Instagram%2FTikTok%3A%0ALink%20portofolio%2Fsample%20video%3A%0A%0ATerima%20kasih.",
       icon: "email",
       color: "#704bfd",
       enabled: true,
