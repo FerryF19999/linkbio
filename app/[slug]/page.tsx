@@ -139,8 +139,8 @@ const fallbackProfile: PublicProfile = {
     },
     {
       id: 6,
-      title: "Threads @nemuaiofficial",
-      url: "https://www.threads.com/@nemuaiofficial",
+      title: "Threads @nemumarketplace",
+      url: "https://www.threads.com/@nemumarketplace",
       icon: "threads",
       color: "#111111",
       enabled: true,
