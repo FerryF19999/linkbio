@@ -85,6 +85,15 @@ const fallbackProfile: PublicProfile = {
       image: "/favicon.svg",
     },
     {
+      id: 14,
+      title: "Daftar Resto di NEMU Makan",
+      url: "https://onboarding.nemu-ai.com/",
+      icon: "external",
+      color: "#704bfd",
+      enabled: true,
+      image: "/favicon.svg",
+    },
+    {
       id: 2,
       title: "Download Nemu AI di Play Store",
       url: "https://play.google.com/store/apps/details?id=com.nemump.nemumobile&pcampaignid=web_share",
