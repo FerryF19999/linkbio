@@ -43,6 +43,7 @@ type LinkItem = {
   clicks: number;
   image?: string;
   featured?: boolean;
+  badge?: string;
   kind?: "link" | "collection";
 };
 
@@ -64,6 +65,21 @@ type WaitlistEntry = {
   name: string;
   email: string;
   source: string;
+  createdAt: string;
+};
+
+type ChallengeEntry = {
+  id: string;
+  fullName: string;
+  whatsapp: string;
+  email: string | null;
+  domicile: string | null;
+  socialUsername: string;
+  platform: string;
+  contentUrl: string;
+  publishedAt: string;
+  screenshotUrl: string | null;
+  contentConcept: string | null;
   createdAt: string;
 };
 
@@ -217,6 +233,7 @@ const navItems = [
   ["Design", "✦"],
   ["Audience", "♙"],
   ["Waitlist", "◷"],
+  ["Challenge", "★"],
   ["Insights", "▥"],
 ];
 
@@ -503,6 +520,10 @@ function Dashboard({
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [waitlistError, setWaitlistError] = useState("");
   const [waitlistVersion, setWaitlistVersion] = useState(0);
+  const [challengeEntries, setChallengeEntries] = useState<ChallengeEntry[]>([]);
+  const [challengeLoading, setChallengeLoading] = useState(false);
+  const [challengeError, setChallengeError] = useState("");
+  const [challengeVersion, setChallengeVersion] = useState(0);
   const [trafficProfiles, setTrafficProfiles] = useState<Record<string, TrafficStats>>({});
   const [trafficLoading, setTrafficLoading] = useState(false);
   const [trafficError, setTrafficError] = useState("");
@@ -590,6 +611,33 @@ function Dashboard({
       cancelled = true;
     };
   }, [activeNav, waitlistVersion]);
+
+  useEffect(() => {
+    if (activeNav !== "Challenge") return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setChallengeLoading(true);
+      setChallengeError("");
+
+      void fetch("/api/challenge", { cache: "no-store" })
+        .then(async (response) => {
+          const result = (await response.json()) as { entries?: ChallengeEntry[]; error?: string };
+          if (!response.ok) throw new Error(result.error || "Unable to load challenge submissions.");
+          if (!cancelled) setChallengeEntries(result.entries ?? []);
+        })
+        .catch((error) => {
+          if (!cancelled) setChallengeError(error instanceof Error ? error.message : "Unable to load challenge submissions.");
+        })
+        .finally(() => {
+          if (!cancelled) setChallengeLoading(false);
+        });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeNav, challengeVersion]);
 
   useEffect(() => {
     if (activeNav !== "Insights") return;
@@ -705,6 +753,32 @@ function Dashboard({
     const anchor = document.createElement("a");
     anchor.href = URL.createObjectURL(blob);
     anchor.download = `nemu-waitlist-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(anchor.href);
+  };
+
+  const downloadChallenge = () => {
+    const escapeCell = (value: string) => `"${value.replaceAll('"', '""')}"`;
+    const rows = [
+      ["Nama", "WhatsApp", "Email", "Domisili", "Username", "Platform", "Link Konten", "Tanggal Publikasi", "Konsep", "Tanggal Daftar"],
+      ...challengeEntries.map((entry) => [
+        entry.fullName,
+        entry.whatsapp,
+        entry.email ?? "",
+        entry.domicile ?? "",
+        entry.socialUsername,
+        entry.platform,
+        entry.contentUrl,
+        entry.publishedAt,
+        entry.contentConcept ?? "",
+        new Date(entry.createdAt).toLocaleString("id-ID"),
+      ]),
+    ];
+    const csv = rows.map((row) => row.map(escapeCell).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = `nemu-challenge-${new Date().toISOString().slice(0, 10)}.csv`;
     anchor.click();
     URL.revokeObjectURL(anchor.href);
   };
@@ -1002,6 +1076,42 @@ function Dashboard({
           </div>
         )}
 
+        {activeNav === "Challenge" && (
+          <div className="utility-panel">
+            <div className="section-title">
+              <div><h2>NEMU 1 Juta Views Challenge</h2><p>Peserta dan konten yang didaftarkan melalui halaman challenge.</p></div>
+              <span>{challengeEntries.length} submissions</span>
+            </div>
+            <div className="waitlist-actions">
+              <a className="challenge-admin-open" href="/challenge" target="_blank" rel="noreferrer">Buka form ↗</a>
+              <button onClick={() => setChallengeVersion((value) => value + 1)} disabled={challengeLoading}>
+                {challengeLoading ? "Refreshing..." : "Refresh"}
+              </button>
+              <button onClick={downloadChallenge} disabled={challengeEntries.length === 0}>Download CSV</button>
+            </div>
+            {challengeError && <p className="waitlist-admin-error">{challengeError}</p>}
+            <div className="challenge-admin-list">
+              {challengeEntries.map((entry) => (
+                <article key={entry.id}>
+                  <header>
+                    <div><strong>{entry.fullName}</strong><span>{entry.platform} · @{entry.socialUsername.replace(/^@/, "")}</span></div>
+                    <time>{new Date(entry.createdAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</time>
+                  </header>
+                  <div className="challenge-admin-meta">
+                    <a href={`https://wa.me/${entry.whatsapp.replace(/\D/g, "").replace(/^0/, "62")}`} target="_blank" rel="noreferrer">WhatsApp</a>
+                    {entry.email && <a href={`mailto:${entry.email}`}>Email</a>}
+                    <a href={entry.contentUrl} target="_blank" rel="noreferrer">Lihat konten ↗</a>
+                    {entry.screenshotUrl && <a href={entry.screenshotUrl} target="_blank" rel="noreferrer">Insight awal ↗</a>}
+                  </div>
+                  <small>Dipublikasikan {new Date(`${entry.publishedAt}T00:00:00`).toLocaleDateString("id-ID", { dateStyle: "long" })}{entry.domicile ? ` · ${entry.domicile}` : ""}</small>
+                  {entry.contentConcept && <p>{entry.contentConcept}</p>}
+                </article>
+              ))}
+              {!challengeLoading && challengeEntries.length === 0 && !challengeError && <p>Belum ada pendaftar challenge.</p>}
+            </div>
+          </div>
+        )}
+
         {activeNav === "Email capture" && (
           <div className="utility-panel email-panel">
             <div className="feature-toggle">
@@ -1028,7 +1138,7 @@ function Dashboard({
           </div>
         )}
 
-        {!["Links", "Design", "Insights", "Shop", "Audience", "Waitlist", "Email capture", "Share", "QR code"].includes(activeNav) && (
+        {!["Links", "Design", "Insights", "Shop", "Audience", "Waitlist", "Challenge", "Email capture", "Share", "QR code"].includes(activeNav) && (
           <div className="empty-panel"><span>✦</span><h2>{activeNav} is ready for your next idea.</h2><p>This demo focuses on onboarding, link management, themes, and live preview.</p><button onClick={() => setActiveNav("Links")}>Back to links</button></div>
         )}
       </section>

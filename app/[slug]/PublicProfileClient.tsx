@@ -31,6 +31,7 @@ export type PublicLink = {
   enabled: boolean;
   image?: string;
   featured?: boolean;
+  badge?: string;
   kind?: "link" | "collection";
 };
 
@@ -223,7 +224,7 @@ export default function PublicProfileClient({
             >
               {link.image ? null : <BrandIcon name={link.icon} />}
             </span>
-            <strong>{link.featured && <small className="featured-badge">Fitur Baru</small>}{link.title}</strong><span>•••</span>
+            <strong>{link.featured && <small className="featured-badge">{link.badge || "Fitur Baru"}</small>}{link.title}</strong><span>•••</span>
           </a>
         ))}
         {(profile.products ?? []).filter((product) => product.enabled).map((product) => (

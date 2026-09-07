@@ -122,6 +122,17 @@ const fallbackProfile: PublicProfile = {
       featured: true,
     },
     {
+      id: 13,
+      title: "Daftar NEMU 1 Juta Views Challenge",
+      url: "https://linkbio.nemu-ai.com/challenge",
+      icon: "external",
+      color: "#704bfd",
+      enabled: true,
+      image: "/favicon.svg",
+      featured: true,
+      badge: "Challenge",
+    },
+    {
       id: 4,
       title: "Apply UGC Creator — Paid Collaboration",
       url: "mailto:info@nemu-ai.com?subject=Apply%20UGC%20Creator%20NEMU%20AI%20-%20Paid%20Collaboration&body=Halo%20Tim%20NEMU%20AI%2C%0A%0ASaya%20ingin%20mendaftar%20sebagai%20UGC%20Creator%20NEMU%20AI.%0A%0ANama%3A%0ANomor%20WhatsApp%3A%0ALink%20Instagram%2FTikTok%3A%0ALink%20portofolio%2Fsample%20video%3A%0A%0ATerima%20kasih.",

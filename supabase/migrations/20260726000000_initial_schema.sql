@@ -46,10 +46,49 @@ create index if not exists profile_clicks_public_id_clicked_at_idx
 create index if not exists profile_clicks_public_id_link_id_idx
   on public.profile_clicks (public_id, link_id);
 
+create table if not exists public.challenge_submissions (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  whatsapp text not null,
+  email text,
+  is_adult boolean not null default false check (is_adult = true),
+  domicile text,
+  social_username text not null,
+  platform text not null check (platform in ('Instagram Reels', 'TikTok', 'YouTube Shorts')),
+  content_url text not null unique,
+  published_at date not null,
+  insight_screenshot_path text,
+  content_concept text,
+  owns_content boolean not null default false check (owns_content = true),
+  stays_public boolean not null default false check (stays_public = true),
+  organic_views boolean not null default false check (organic_views = true),
+  insight_verification boolean not null default false check (insight_verification = true),
+  repost_permission boolean not null default false check (repost_permission = true),
+  terms_accepted boolean not null default false check (terms_accepted = true),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists challenge_submissions_created_at_idx
+  on public.challenge_submissions (created_at desc);
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'challenge-insights',
+  'challenge-insights',
+  false,
+  3145728,
+  array['image/jpeg', 'image/png', 'image/webp']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
 alter table public.profiles enable row level security;
 alter table public.waitlist_entries enable row level security;
 alter table public.profile_views enable row level security;
 alter table public.profile_clicks enable row level security;
+alter table public.challenge_submissions enable row level security;
 
 -- All table access goes through server-side route handlers using the
 -- service-role key, so no browser-facing RLS policy is required.
