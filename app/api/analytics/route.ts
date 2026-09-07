@@ -159,8 +159,17 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const user = await getNemuUser();
+    if (!user) {
+      return Response.json(
+        { error: "Admin session expired. Please log in again." },
+        { status: 401, headers: { "cache-control": "no-store" } },
+      );
+    }
     if (!isAdminUser(user)) {
-      return Response.json({ error: "Admin access required." }, { status: 403 });
+      return Response.json(
+        { error: "Admin access required." },
+        { status: 403, headers: { "cache-control": "no-store" } },
+      );
     }
 
     const db = createSupabaseAdminClient();

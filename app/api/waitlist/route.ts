@@ -66,8 +66,17 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const user = await getNemuUser();
+    if (!user) {
+      return Response.json(
+        { error: "Admin session expired. Please log in again." },
+        { status: 401, headers: { "cache-control": "no-store" } },
+      );
+    }
     if (!isAdminUser(user)) {
-      return Response.json({ error: "Admin access required." }, { status: 403 });
+      return Response.json(
+        { error: "Admin access required." },
+        { status: 403, headers: { "cache-control": "no-store" } },
+      );
     }
 
     const db = createSupabaseAdminClient();
@@ -78,15 +87,18 @@ export async function GET() {
       .limit(1000);
     if (error) throw error;
 
-    return Response.json({
-      entries: (entries ?? []).map((entry) => ({
-        id: entry.id,
-        name: entry.name,
-        email: entry.email,
-        source: entry.source,
-        createdAt: entry.created_at,
-      })),
-    });
+    return Response.json(
+      {
+        entries: (entries ?? []).map((entry) => ({
+          id: entry.id,
+          name: entry.name,
+          email: entry.email,
+          source: entry.source,
+          createdAt: entry.created_at,
+        })),
+      },
+      { headers: { "cache-control": "no-store" } },
+    );
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to load the waitlist." },

@@ -24,6 +24,30 @@ import {
   SiYoutube,
 } from "react-icons/si";
 
+let adminRedirectStarted = false;
+
+async function fetchAdminResource(input: string, init?: RequestInit) {
+  const response = await fetch(input, {
+    ...init,
+    cache: init?.cache ?? "no-store",
+    credentials: "same-origin",
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    if (!adminRedirectStarted) {
+      adminRedirectStarted = true;
+      const destination =
+        response.status === 401
+          ? "/login?error=Your+admin+session+expired.+Please+log+in+again."
+          : "/login?denied=1";
+      window.location.replace(destination);
+    }
+    throw new Error("Admin session expired. Redirecting to login...");
+  }
+
+  return response;
+}
+
 type Platform = {
   id: string;
   name: string;
@@ -576,11 +600,11 @@ function Dashboard({
     localStorage.setItem("linkspark-profile", JSON.stringify(savedProfile));
     if (!publicId) return;
     const syncTimer = window.setTimeout(() => {
-      void fetch("/api/profile", {
+      void fetchAdminResource("/api/profile", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ publicId, profile: savedProfile }),
-      });
+      }).catch(() => undefined);
     }, 700);
     return () => window.clearTimeout(syncTimer);
   }, [themeId, links, name, bio, profileImage, archive, products, subscribers, emailCapture, publicId]);
@@ -593,7 +617,7 @@ function Dashboard({
       setWaitlistLoading(true);
       setWaitlistError("");
 
-      void fetch("/api/waitlist")
+      void fetchAdminResource("/api/waitlist")
         .then(async (response) => {
           const result = (await response.json()) as { entries?: WaitlistEntry[]; error?: string };
           if (!response.ok) throw new Error(result.error || "Unable to load waitlist.");
@@ -620,7 +644,7 @@ function Dashboard({
       setChallengeLoading(true);
       setChallengeError("");
 
-      void fetch("/api/challenge", { cache: "no-store" })
+      void fetchAdminResource("/api/challenge")
         .then(async (response) => {
           const result = (await response.json()) as { entries?: ChallengeEntry[]; error?: string };
           if (!response.ok) throw new Error(result.error || "Unable to load challenge submissions.");
@@ -647,7 +671,7 @@ function Dashboard({
       setTrafficLoading(true);
       setTrafficError("");
 
-      void fetch("/api/analytics", { cache: "no-store" })
+      void fetchAdminResource("/api/analytics")
         .then(async (response) => {
           const result = (await response.json()) as TrafficResponse;
           if (!response.ok) throw new Error(result.error || "Unable to load traffic.");
