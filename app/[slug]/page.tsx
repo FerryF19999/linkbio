@@ -121,6 +121,15 @@ const fallbackProfile: PublicProfile = {
       image: "/favicon.svg",
     },
     {
+      id: 15,
+      title: "Kalkulator Biaya NEMU vs Marketplace Lain",
+      url: "https://shop.nemu-ai.com/bandingkan-harga",
+      icon: "website",
+      color: "#704bfd",
+      enabled: true,
+      image: "/favicon.svg",
+    },
+    {
       id: 9,
       title: "Snap List Sell",
       url: "https://cekhargadisini.com/",
