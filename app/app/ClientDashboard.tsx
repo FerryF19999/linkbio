@@ -119,6 +119,8 @@ type ClickDay = {
   clicks: number;
 };
 
+type ClickPerformanceRange = "daily" | "weekly" | "monthly";
+
 type ClickLinkStats = {
   linkId: string;
   linkType: string;
@@ -132,6 +134,8 @@ type ClickStats = {
   today: number;
   last7Days: number;
   daily: ClickDay[];
+  weekly: ClickDay[];
+  monthly: ClickDay[];
   links: ClickLinkStats[];
 };
 
@@ -559,6 +563,7 @@ function Dashboard({
   const [trafficProfiles, setTrafficProfiles] = useState<Record<string, TrafficStats>>({});
   const [trafficLoading, setTrafficLoading] = useState(false);
   const [trafficError, setTrafficError] = useState("");
+  const [clickPerformanceRange, setClickPerformanceRange] = useState<ClickPerformanceRange>("daily");
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
@@ -569,7 +574,7 @@ function Dashboard({
     last7Days: 0,
     daily: [],
     channels: [],
-    clicks: { total: 0, today: 0, last7Days: 0, daily: [], links: [] },
+    clicks: { total: 0, today: 0, last7Days: 0, daily: [], weekly: [], monthly: [], links: [] },
   };
   const nemuTraffic = trafficProfiles["nemu-ai"] ?? emptyTraffic;
   const cekHargaTraffic = trafficProfiles.cekhargadisini ?? emptyTraffic;
@@ -600,6 +605,27 @@ function Dashboard({
     nemu: nemuTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
     cekHarga: cekHargaTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
   }));
+  const nemuClickPerformance = nemuTraffic.clicks[clickPerformanceRange] ?? [];
+  const cekHargaClickPerformance = cekHargaTraffic.clicks[clickPerformanceRange] ?? [];
+  const clickPerformanceRows = Array.from(
+    { length: Math.max(nemuClickPerformance.length, cekHargaClickPerformance.length) },
+    (_, index) => ({
+      label: nemuClickPerformance[index]?.label ?? cekHargaClickPerformance[index]?.label ?? "",
+      nemu: nemuClickPerformance[index]?.clicks ?? 0,
+      cekHarga: cekHargaClickPerformance[index]?.clicks ?? 0,
+    }),
+  );
+  const maxClickPerformance = Math.max(
+    1,
+    ...clickPerformanceRows.flatMap((entry) => [entry.nemu, entry.cekHarga]),
+  );
+  const clickPerformanceTotals = clickPerformanceRows.reduce(
+    (totals, entry) => ({
+      nemu: totals.nemu + entry.nemu,
+      cekHarga: totals.cekHarga + entry.cekHarga,
+    }),
+    { nemu: 0, cekHarga: 0 },
+  );
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -1022,6 +1048,66 @@ function Dashboard({
                     </i>
                   ))}
                 </div>
+              )}
+            </div>
+            <div className="chart-card click-trend-card">
+              <div className="section-title click-trend-title">
+                <div>
+                  <h2>Performa Klik</h2>
+                  <p>Perbandingan klik NEMU AI dan Cek Harga di Sini dalam zona waktu WIB.</p>
+                </div>
+                <div className="click-range-toggle" aria-label="Rentang performa klik">
+                  {([
+                    ["daily", "Harian"],
+                    ["weekly", "Mingguan"],
+                    ["monthly", "Bulanan"],
+                  ] as Array<[ClickPerformanceRange, string]>).map(([range, label]) => (
+                    <button
+                      type="button"
+                      key={range}
+                      className={clickPerformanceRange === range ? "active" : ""}
+                      aria-pressed={clickPerformanceRange === range}
+                      onClick={() => setClickPerformanceRange(range)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {trafficLoading ? (
+                <p className="analytics-state">Memuat performa klik…</p>
+              ) : trafficError ? (
+                <p className="analytics-state error">{trafficError}</p>
+              ) : (
+                <>
+                  <div className="click-trend-summary">
+                    <span><i className="nemu" /> NEMU AI <b>{clickPerformanceTotals.nemu.toLocaleString("id-ID")}</b></span>
+                    <span><i className="cek-harga" /> Cek Harga <b>{clickPerformanceTotals.cekHarga.toLocaleString("id-ID")}</b></span>
+                    <strong>{(clickPerformanceTotals.nemu + clickPerformanceTotals.cekHarga).toLocaleString("id-ID")} klik</strong>
+                  </div>
+                  <div className="click-trend-scroll">
+                    <div className={`click-trend-chart is-${clickPerformanceRange}`}>
+                      {clickPerformanceRows.map((entry, index) => (
+                        <div className="click-trend-column" key={`${entry.label}-${index}`}>
+                          <b>{entry.nemu + entry.cekHarga}</b>
+                          <div className="click-trend-bars">
+                            <i
+                              className={entry.nemu === 0 ? "nemu zero" : "nemu"}
+                              style={{ height: `${Math.max(2, (entry.nemu / maxClickPerformance) * 100)}%` }}
+                              title={`NEMU AI: ${entry.nemu} klik`}
+                            />
+                            <i
+                              className={entry.cekHarga === 0 ? "cek-harga zero" : "cek-harga"}
+                              style={{ height: `${Math.max(2, (entry.cekHarga / maxClickPerformance) * 100)}%` }}
+                              title={`Cek Harga: ${entry.cekHarga} klik`}
+                            />
+                          </div>
+                          <span>{entry.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
             <div className="chart-card click-performance-card">

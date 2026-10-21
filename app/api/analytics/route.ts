@@ -105,6 +105,37 @@ function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+type ClickPerformancePeriod = "daily" | "weekly" | "monthly";
+
+function clickPerformanceLabel(period: ClickPerformancePeriod, periodStart: string) {
+  const date = new Date(`${periodStart}T00:00:00+07:00`);
+  if (period === "daily") {
+    return date.toLocaleDateString("id-ID", {
+      weekday: "short",
+      day: "numeric",
+      timeZone: "Asia/Jakarta",
+    });
+  }
+  if (period === "weekly") {
+    const endDate = new Date(date.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const startLabel = date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      timeZone: "Asia/Jakarta",
+    });
+    const endLabel = endDate.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      timeZone: "Asia/Jakarta",
+    });
+    return `${startLabel}–${endLabel}`;
+  }
+  return date.toLocaleDateString("id-ID", {
+    month: "short",
+    year: "2-digit",
+    timeZone: "Asia/Jakarta",
+  });
+}
+
 function botReason(request: Request, userAgent: string) {
   if (!userAgent) return "missing_user_agent";
   if (botUserAgentPattern.test(userAgent)) return "known_bot_user_agent";
@@ -345,8 +376,7 @@ export async function GET() {
             todayResult,
             recentResult,
             totalClicksResult,
-            todayClicksResult,
-            recentClicksResult,
+            clickPerformanceResult,
             clickLinksResult,
             channelAnalyticsResult,
           ] = await Promise.all([
@@ -367,19 +397,9 @@ export async function GET() {
               .limit(10000),
             db.from("profile_clicks").select("id", { count: "exact", head: true }).eq("public_id", publicId).eq("is_bot", false),
             db
-              .from("profile_clicks")
-              .select("id", { count: "exact", head: true })
-              .eq("public_id", publicId)
-              .eq("is_bot", false)
-              .gte("clicked_at", today.toISOString()),
-            db
-              .from("profile_clicks")
-              .select("clicked_at")
-              .eq("public_id", publicId)
-              .eq("is_bot", false)
-              .gte("clicked_at", sevenDaysAgo.toISOString())
-              .order("clicked_at", { ascending: true })
-              .limit(10000),
+              .rpc("get_profile_click_performance", {
+                p_public_id: publicId,
+              }),
             db
               .from("profile_clicks")
               .select("session_id,source_channel,link_id,link_type,link_title,target_url")
@@ -397,8 +417,7 @@ export async function GET() {
           if (todayResult.error) throw todayResult.error;
           if (recentResult.error) throw recentResult.error;
           if (totalClicksResult.error) throw totalClicksResult.error;
-          if (todayClicksResult.error) throw todayClicksResult.error;
-          if (recentClicksResult.error) throw recentClicksResult.error;
+          if (clickPerformanceResult.error) throw clickPerformanceResult.error;
           if (clickLinksResult.error) throw clickLinksResult.error;
           if (channelAnalyticsResult.error) throw channelAnalyticsResult.error;
 
@@ -414,18 +433,20 @@ export async function GET() {
               ).length,
             };
           });
-          const clickDaily = Array.from({ length: 7 }, (_, index) => {
-            const date = new Date(sevenDaysAgo);
-            date.setDate(date.getDate() + index);
-            const dateKey = date.toISOString().slice(0, 10);
-            return {
-              date: dateKey,
-              label: date.toLocaleDateString("id-ID", { weekday: "short" }),
-              clicks: (recentClicksResult.data ?? []).filter(
-                (entry) => new Date(entry.clicked_at).toISOString().slice(0, 10) === dateKey,
-              ).length,
-            };
-          });
+          const clickPerformance: Record<
+            ClickPerformancePeriod,
+            Array<{ date: string; label: string; clicks: number }>
+          > = { daily: [], weekly: [], monthly: [] };
+          for (const row of clickPerformanceResult.data ?? []) {
+            const period = String(row.period) as ClickPerformancePeriod;
+            if (!(period in clickPerformance)) continue;
+            const date = String(row.period_start);
+            clickPerformance[period].push({
+              date,
+              label: clickPerformanceLabel(period, date),
+              clicks: Number(row.clicks ?? 0),
+            });
+          }
           const linkCounts = new Map<
             string,
             { linkId: string; linkType: string; title: string; url: string; clicks: number }
@@ -474,9 +495,9 @@ export async function GET() {
               })),
               clicks: {
                 total: totalClicksResult.count ?? 0,
-                today: todayClicksResult.count ?? 0,
-                last7Days: clickDaily.reduce((sum, day) => sum + day.clicks, 0),
-                daily: clickDaily,
+                today: clickPerformance.daily.at(-1)?.clicks ?? 0,
+                last7Days: clickPerformance.daily.reduce((sum, day) => sum + day.clicks, 0),
+                ...clickPerformance,
                 links: Array.from(linkCounts.values()).sort((a, b) => b.clicks - a.clicks),
               },
             },
