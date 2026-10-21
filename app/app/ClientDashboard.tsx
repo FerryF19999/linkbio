@@ -563,6 +563,8 @@ function Dashboard({
   const [trafficProfiles, setTrafficProfiles] = useState<Record<string, TrafficStats>>({});
   const [trafficLoading, setTrafficLoading] = useState(false);
   const [trafficError, setTrafficError] = useState("");
+  const [trafficUpdatedAt, setTrafficUpdatedAt] = useState<Date | null>(null);
+  const [trafficVersion, setTrafficVersion] = useState(0);
   const [clickPerformanceRange, setClickPerformanceRange] = useState<ClickPerformanceRange>("daily");
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
@@ -718,29 +720,53 @@ function Dashboard({
   useEffect(() => {
     if (activeNav !== "Insights") return;
     let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      setTrafficLoading(true);
+    let inFlight = false;
+    let activeController: AbortController | null = null;
+
+    const loadTraffic = async (showLoading: boolean) => {
+      if (cancelled || inFlight) return;
+      inFlight = true;
+      activeController = new AbortController();
+      if (showLoading) setTrafficLoading(true);
       setTrafficError("");
 
-      void fetchAdminResource("/api/analytics")
-        .then(async (response) => {
-          const result = (await response.json()) as TrafficResponse;
-          if (!response.ok) throw new Error(result.error || "Unable to load traffic.");
-          if (!cancelled) setTrafficProfiles(result.profiles ?? {});
-        })
-        .catch((error) => {
-          if (!cancelled) setTrafficError(error instanceof Error ? error.message : "Unable to load traffic.");
-        })
-        .finally(() => {
-          if (!cancelled) setTrafficLoading(false);
+      try {
+        const response = await fetchAdminResource("/api/analytics", {
+          signal: activeController.signal,
         });
-    });
+        const result = (await response.json()) as TrafficResponse;
+        if (!response.ok) throw new Error(result.error || "Unable to load traffic.");
+        if (!cancelled) {
+          setTrafficProfiles(result.profiles ?? {});
+          setTrafficUpdatedAt(new Date());
+        }
+      } catch (error) {
+        if (!cancelled && !(error instanceof DOMException && error.name === "AbortError")) {
+          setTrafficError(error instanceof Error ? error.message : "Unable to load traffic.");
+        }
+      } finally {
+        inFlight = false;
+        if (!cancelled && showLoading) setTrafficLoading(false);
+      }
+    };
+
+    const refreshVisibleTraffic = () => {
+      if (document.visibilityState === "visible") void loadTraffic(false);
+    };
+
+    queueMicrotask(() => void loadTraffic(true));
+    const refreshTimer = window.setInterval(refreshVisibleTraffic, 30_000);
+    window.addEventListener("focus", refreshVisibleTraffic);
+    document.addEventListener("visibilitychange", refreshVisibleTraffic);
 
     return () => {
       cancelled = true;
+      activeController?.abort();
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("focus", refreshVisibleTraffic);
+      document.removeEventListener("visibilitychange", refreshVisibleTraffic);
     };
-  }, [activeNav]);
+  }, [activeNav, trafficVersion]);
 
   const addLink = () => {
     const id = ++nextId.current;
@@ -1011,6 +1037,21 @@ function Dashboard({
 
         {activeNav === "Insights" && (
           <div className="insights-panel">
+            <div className="insights-live-bar">
+              <span><i /> DATA LIVE</span>
+              <small>
+                {trafficUpdatedAt
+                  ? `Diperbarui ${trafficUpdatedAt.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Jakarta" })} WIB`
+                  : "Menunggu pembaruan pertama"}
+              </small>
+              <button
+                type="button"
+                onClick={() => setTrafficVersion((version) => version + 1)}
+                disabled={trafficLoading}
+              >
+                {trafficLoading ? "Memperbarui…" : "↻ Refresh sekarang"}
+              </button>
+            </div>
             <div className="metric-card">
               <span>TOTAL TRAFFIC</span>
               <strong>{(nemuTraffic.total + cekHargaTraffic.total).toLocaleString("id-ID")}</strong>
