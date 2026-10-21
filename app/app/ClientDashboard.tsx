@@ -135,11 +135,19 @@ type ClickStats = {
   links: ClickLinkStats[];
 };
 
+type ChannelStats = {
+  channel: string;
+  label: string;
+  views: number;
+  clicks: number;
+};
+
 type TrafficStats = {
   total: number;
   today: number;
   last7Days: number;
   daily: TrafficDay[];
+  channels: ChannelStats[];
   clicks: ClickStats;
 };
 
@@ -560,6 +568,7 @@ function Dashboard({
     today: 0,
     last7Days: 0,
     daily: [],
+    channels: [],
     clicks: { total: 0, today: 0, last7Days: 0, daily: [], links: [] },
   };
   const nemuTraffic = trafficProfiles["nemu-ai"] ?? emptyTraffic;
@@ -574,6 +583,23 @@ function Dashboard({
     views: (nemuTraffic.daily[index]?.views ?? 0) + (cekHargaTraffic.daily[index]?.views ?? 0),
   }));
   const maxDailyViews = Math.max(1, ...combinedDaily.map((day) => day.views));
+  const channelOrder = ["instagram", "tiktok", "youtube", "facebook", "x", "threads", "direct", "other"];
+  const channelLabels: Record<string, string> = {
+    instagram: "Instagram",
+    tiktok: "TikTok",
+    youtube: "YouTube",
+    facebook: "Facebook",
+    x: "X",
+    threads: "Threads",
+    direct: "Direct",
+    other: "Lainnya",
+  };
+  const channelRows = channelOrder.map((channel) => ({
+    channel,
+    label: channelLabels[channel],
+    nemu: nemuTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
+    cekHarga: cekHargaTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
+  }));
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -1031,6 +1057,41 @@ function Dashboard({
                   ))}
                 </div>
               )}
+            </div>
+            <div className="chart-card channel-performance-card">
+              <div className="section-title">
+                <div>
+                  <h2>Analytics per Channel</h2>
+                  <p>Sumber kunjungan dan klik dari Instagram, TikTok, YouTube, Facebook, X, dan Threads.</p>
+                </div>
+              </div>
+              {trafficLoading ? (
+                <p className="analytics-state compact">Memuat channel…</p>
+              ) : trafficError ? (
+                <p className="analytics-state compact error">{trafficError}</p>
+              ) : (
+                <div className="channel-table">
+                  <div className="channel-table-head">
+                    <span>CHANNEL</span>
+                    <span>NEMU VIEWS</span>
+                    <span>NEMU CLICKS</span>
+                    <span>CEK HARGA VIEWS</span>
+                    <span>CEK HARGA CLICKS</span>
+                  </div>
+                  {channelRows.map((row) => (
+                    <div className="channel-table-row" key={row.channel}>
+                      <strong>{row.label}</strong>
+                      <span>{row.nemu.views.toLocaleString("id-ID")}</span>
+                      <span>{row.nemu.clicks.toLocaleString("id-ID")}</span>
+                      <span>{row.cekHarga.views.toLocaleString("id-ID")}</span>
+                      <span>{row.cekHarga.clicks.toLocaleString("id-ID")}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="channel-hint">
+                Gunakan <code>?utm_source=instagram</code> (ganti nama channel sesuai platform) agar atribusi tetap akurat saat aplikasi sosial menyembunyikan referrer.
+              </p>
             </div>
           </div>
         )}

@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import postgres from "postgres";
 
 const databaseUrl =
@@ -9,10 +9,10 @@ if (!databaseUrl) {
   throw new Error("POSTGRES_URL_NON_POOLING or POSTGRES_URL is required.");
 }
 
-const migration = await readFile(
-  new URL("../supabase/migrations/20260726000000_initial_schema.sql", import.meta.url),
-  "utf8",
-);
+const migrationsDirectory = new URL("../supabase/migrations/", import.meta.url);
+const migrationFiles = (await readdir(migrationsDirectory))
+  .filter((file) => file.endsWith(".sql"))
+  .sort();
 const sql = postgres(databaseUrl, {
   max: 1,
   ssl: "require",
@@ -20,8 +20,12 @@ const sql = postgres(databaseUrl, {
 });
 
 try {
-  await sql.unsafe(migration);
-  console.log("Supabase schema migration completed.");
+  for (const file of migrationFiles) {
+    const migration = await readFile(new URL(file, migrationsDirectory), "utf8");
+    await sql.unsafe(migration);
+    console.log(`Applied ${file}`);
+  }
+  console.log("Supabase schema migrations completed.");
 } finally {
   await sql.end();
 }

@@ -2,6 +2,36 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getNemuUser, isAdminUser } from "../../auth";
 
 const trackedProfiles = ["nemu-ai", "cekhargadisini"] as const;
+const trackedChannels = ["instagram", "tiktok", "youtube", "facebook", "x", "threads"] as const;
+type TrackedChannel = (typeof trackedChannels)[number];
+type TrafficChannel = TrackedChannel | "direct" | "other";
+
+const channelLabels: Record<TrafficChannel, string> = {
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  youtube: "YouTube",
+  facebook: "Facebook",
+  x: "X",
+  threads: "Threads",
+  direct: "Direct",
+  other: "Lainnya",
+};
+
+const channelAliases: Record<string, TrafficChannel> = {
+  ig: "instagram",
+  instagram: "instagram",
+  tt: "tiktok",
+  tiktok: "tiktok",
+  yt: "youtube",
+  youtube: "youtube",
+  fb: "facebook",
+  facebook: "facebook",
+  x: "x",
+  twitter: "x",
+  threads: "threads",
+  direct: "direct",
+  other: "other",
+};
 
 function cleanPublicId(value: unknown) {
   return String(value ?? "")
@@ -29,6 +59,44 @@ function cleanText(value: unknown, maxLength: number) {
   return String(value ?? "").trim().slice(0, maxLength);
 }
 
+function channelFromReferrer(value: string): TrafficChannel | null {
+  if (!value) return null;
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    if (host.includes("instagram.com")) return "instagram";
+    if (host.includes("tiktok.com")) return "tiktok";
+    if (host.includes("youtube.com") || host.includes("youtu.be")) return "youtube";
+    if (host.includes("facebook.com") || host.includes("fb.com")) return "facebook";
+    if (host === "x.com" || host.endsWith(".x.com") || host.includes("twitter.com") || host.includes("t.co")) return "x";
+    if (host.includes("threads.com") || host.includes("threads.net")) return "threads";
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function channelFromUserAgent(value: string): TrafficChannel | null {
+  const userAgent = value.toLowerCase();
+  if (/instagram/.test(userAgent)) return "instagram";
+  if (/tiktok|musical_ly|bytedance/.test(userAgent)) return "tiktok";
+  if (/youtube/.test(userAgent)) return "youtube";
+  if (/fban|fbav|facebook/.test(userAgent)) return "facebook";
+  if (/twitter/.test(userAgent)) return "x";
+  if (/threads|barcelona/.test(userAgent)) return "threads";
+  return null;
+}
+
+function resolveTrafficChannel(source: unknown, referrer: unknown, userAgent: string): TrafficChannel {
+  const explicit = channelAliases[cleanText(source, 40).toLowerCase()];
+  const cleanedReferrer = cleanText(referrer, 500);
+  return (
+    explicit ??
+    channelFromReferrer(cleanedReferrer) ??
+    channelFromUserAgent(userAgent) ??
+    (cleanedReferrer ? "other" : "direct")
+  );
+}
+
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -40,6 +108,7 @@ export async function POST(request: Request) {
       publicId?: unknown;
       sessionId?: unknown;
       referrer?: unknown;
+      sourceChannel?: unknown;
       eventId?: unknown;
       linkId?: unknown;
       linkType?: unknown;
@@ -47,6 +116,8 @@ export async function POST(request: Request) {
     const event = payload.event === "click" ? "click" : "view";
     const publicId = cleanPublicId(payload.publicId);
     const sessionId = cleanSessionId(payload.sessionId);
+    const userAgent = cleanText(request.headers.get("user-agent"), 500);
+    const sourceChannel = resolveTrafficChannel(payload.sourceChannel, payload.referrer, userAgent);
 
     if (!trackedProfiles.includes(publicId as (typeof trackedProfiles)[number])) {
       return Response.json({ error: "Profile is not tracked." }, { status: 400 });
@@ -111,7 +182,8 @@ export async function POST(request: Request) {
           link_type: linkType,
           link_title: cleanText(target.title, 200) || "Untitled link",
           target_url: cleanText(target.url, 2000),
-          user_agent: cleanText(request.headers.get("user-agent"), 500) || null,
+          source_channel: sourceChannel,
+          user_agent: userAgent || null,
         },
         {
           onConflict: "public_id,event_id",
@@ -131,7 +203,8 @@ export async function POST(request: Request) {
         public_id: publicId,
         session_id: sessionId,
         referrer: cleanText(payload.referrer, 500) || null,
-        user_agent: cleanText(request.headers.get("user-agent"), 500) || null,
+        source_channel: sourceChannel,
+        user_agent: userAgent || null,
       },
       {
         onConflict: "public_id,session_id",
@@ -189,6 +262,7 @@ export async function GET() {
             todayClicksResult,
             recentClicksResult,
             clickLinksResult,
+            channelViewsResult,
           ] = await Promise.all([
             db.from("profile_views").select("id", { count: "exact", head: true }).eq("public_id", publicId),
             db
@@ -218,9 +292,14 @@ export async function GET() {
               .limit(10000),
             db
               .from("profile_clicks")
-              .select("link_id,link_type,link_title,target_url")
+              .select("session_id,source_channel,link_id,link_type,link_title,target_url")
               .eq("public_id", publicId)
               .order("clicked_at", { ascending: false })
+              .limit(10000),
+            db
+              .from("profile_views")
+              .select("session_id,source_channel,referrer")
+              .eq("public_id", publicId)
               .limit(10000),
           ]);
 
@@ -231,6 +310,7 @@ export async function GET() {
           if (todayClicksResult.error) throw todayClicksResult.error;
           if (recentClicksResult.error) throw recentClicksResult.error;
           if (clickLinksResult.error) throw clickLinksResult.error;
+          if (channelViewsResult.error) throw channelViewsResult.error;
 
           const daily = Array.from({ length: 7 }, (_, index) => {
             const date = new Date(sevenDaysAgo);
@@ -276,6 +356,26 @@ export async function GET() {
             }
           }
 
+          const channelCounts = new Map<TrafficChannel, { views: number; clicks: number }>(
+            ([...trackedChannels, "direct", "other"] as TrafficChannel[]).map((channel) => [
+              channel,
+              { views: 0, clicks: 0 },
+            ]),
+          );
+          const sessionChannels = new Map<string, TrafficChannel>();
+          for (const view of channelViewsResult.data ?? []) {
+            const channel = resolveTrafficChannel(view.source_channel, view.referrer, "");
+            sessionChannels.set(view.session_id, channel);
+            channelCounts.get(channel)!.views += 1;
+          }
+          for (const click of clickLinksResult.data ?? []) {
+            const channel =
+              channelAliases[String(click.source_channel ?? "").toLowerCase()] ??
+              sessionChannels.get(click.session_id) ??
+              "direct";
+            channelCounts.get(channel)!.clicks += 1;
+          }
+
           return [
             publicId,
             {
@@ -283,6 +383,11 @@ export async function GET() {
               today: todayResult.count ?? 0,
               last7Days: daily.reduce((sum, day) => sum + day.views, 0),
               daily,
+              channels: Array.from(channelCounts, ([channel, counts]) => ({
+                channel,
+                label: channelLabels[channel],
+                ...counts,
+              })),
               clicks: {
                 total: totalClicksResult.count ?? 0,
                 today: todayClicksResult.count ?? 0,

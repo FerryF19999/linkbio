@@ -117,6 +117,50 @@ function createAnalyticsEventId() {
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+const trafficChannelAliases: Record<string, string> = {
+  ig: "instagram",
+  instagram: "instagram",
+  tiktok: "tiktok",
+  tt: "tiktok",
+  youtube: "youtube",
+  yt: "youtube",
+  facebook: "facebook",
+  fb: "facebook",
+  x: "x",
+  twitter: "x",
+  threads: "threads",
+};
+
+function channelFromValue(value: string) {
+  return trafficChannelAliases[value.trim().toLowerCase()] ?? "";
+}
+
+function channelFromReferrer(value: string) {
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    if (host.includes("instagram.com")) return "instagram";
+    if (host.includes("tiktok.com")) return "tiktok";
+    if (host.includes("youtube.com") || host.includes("youtu.be")) return "youtube";
+    if (host.includes("facebook.com") || host.includes("fb.com")) return "facebook";
+    if (host === "x.com" || host.endsWith(".x.com") || host.includes("twitter.com") || host.includes("t.co")) return "x";
+    if (host.includes("threads.com") || host.includes("threads.net")) return "threads";
+  } catch {
+    // Missing and privacy-stripped referrers are handled as direct traffic.
+  }
+  return "";
+}
+
+function getTrafficChannel(slug: string) {
+  const storageKey = `nemu-linkbio-channel:${slug}`;
+  const params = new URLSearchParams(window.location.search);
+  const explicit = channelFromValue(
+    params.get("utm_source") ?? params.get("source") ?? params.get("ref") ?? "",
+  );
+  const detected = explicit || channelFromReferrer(document.referrer);
+  if (detected) sessionStorage.setItem(storageKey, detected);
+  return detected || sessionStorage.getItem(storageKey) || "";
+}
+
 export default function PublicProfileClient({
   initialProfile,
   slug,
@@ -144,6 +188,7 @@ export default function PublicProfileClient({
           publicId: slug,
           sessionId,
           referrer: document.referrer,
+          sourceChannel: getTrafficChannel(slug),
         }),
         keepalive: true,
       }).then((response) => {
@@ -172,6 +217,8 @@ export default function PublicProfileClient({
           eventId: createAnalyticsEventId(),
           linkId: String(item.id),
           linkType,
+          referrer: document.referrer,
+          sourceChannel: getTrafficChannel(slug),
         }),
         keepalive: true,
       }).catch(() => {
