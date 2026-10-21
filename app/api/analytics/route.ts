@@ -1,10 +1,14 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getNemuUser, isAdminUser } from "../../auth";
+import { createHash } from "node:crypto";
 
 const trackedProfiles = ["nemu-ai", "cekhargadisini"] as const;
 const trackedChannels = ["instagram", "tiktok", "youtube", "facebook", "x", "threads"] as const;
 type TrackedChannel = (typeof trackedChannels)[number];
 type TrafficChannel = TrackedChannel | "direct" | "other";
+
+const botUserAgentPattern =
+  /bot|crawler|spider|slurp|scrapy|curl|wget|python-requests|python\/|postmanruntime|insomnia|go-http-client|phantomjs|headlesschrome|selenium|puppeteer|playwright|lighthouse|pagespeed|facebookexternalhit|facebot|twitterbot|linkedinbot|pinterestbot|slackbot|discordbot|telegrambot|skypeuripreview|google-inspectiontool|bingpreview|gptbot|chatgpt-user|claudebot|perplexitybot/i;
 
 const channelLabels: Record<TrafficChannel, string> = {
   instagram: "Instagram",
@@ -101,6 +105,70 @@ function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+function botReason(request: Request, userAgent: string) {
+  if (!userAgent) return "missing_user_agent";
+  if (botUserAgentPattern.test(userAgent)) return "known_bot_user_agent";
+
+  const requestOrigin = request.headers.get("origin");
+  const expectedOrigin = new URL(request.url).origin;
+  if (requestOrigin && requestOrigin !== expectedOrigin) return "cross_origin_request";
+
+  const fetchSite = request.headers.get("sec-fetch-site");
+  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "same-site") {
+    return "invalid_fetch_context";
+  }
+
+  return null;
+}
+
+function getClientIp(request: Request) {
+  return (
+    request.headers.get("x-vercel-forwarded-for") ??
+    request.headers.get("x-forwarded-for") ??
+    request.headers.get("x-real-ip") ??
+    ""
+  )
+    .split(",")[0]
+    .trim();
+}
+
+function analyticsFingerprint(request: Request, publicId: string, userAgent: string) {
+  const ip = getClientIp(request);
+  if (!ip) return "";
+
+  const salt = process.env.ANALYTICS_HASH_SALT ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "nemu-analytics";
+  const browserHints = [
+    request.headers.get("accept-language") ?? "",
+    request.headers.get("sec-ch-ua") ?? "",
+    request.headers.get("sec-ch-ua-mobile") ?? "",
+    request.headers.get("sec-ch-ua-platform") ?? "",
+  ].join("|");
+
+  return createHash("sha256")
+    .update(`${salt}|${publicId}|${ip}|${userAgent}|${browserHints}`)
+    .digest("hex");
+}
+
+async function isRateLimited(
+  db: ReturnType<typeof createSupabaseAdminClient>,
+  request: Request,
+  publicId: string,
+  userAgent: string,
+  event: "view" | "click",
+) {
+  const fingerprint = analyticsFingerprint(request, publicId, userAgent);
+  if (!fingerprint) return false;
+
+  const { data, error } = await db.rpc("consume_analytics_rate_limit", {
+    p_fingerprint: fingerprint,
+    p_event_kind: event,
+    p_limit: event === "view" ? 30 : 90,
+    p_window_seconds: 600,
+  });
+  if (error) throw error;
+  return data !== true;
+}
+
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as {
@@ -126,7 +194,21 @@ export async function POST(request: Request) {
       return Response.json({ error: "Invalid session." }, { status: 400 });
     }
 
+    const filteredReason = botReason(request, userAgent);
+    if (filteredReason) {
+      return Response.json(
+        { ok: true, filtered: true },
+        { headers: { "cache-control": "no-store" } },
+      );
+    }
+
     const db = createSupabaseAdminClient();
+    if (await isRateLimited(db, request, publicId, userAgent, event)) {
+      return Response.json(
+        { ok: true, filtered: true },
+        { headers: { "cache-control": "no-store" } },
+      );
+    }
 
     if (event === "click") {
       const eventId = cleanIdentifier(payload.eventId);
@@ -184,6 +266,8 @@ export async function POST(request: Request) {
           target_url: cleanText(target.url, 2000),
           source_channel: sourceChannel,
           user_agent: userAgent || null,
+          is_bot: false,
+          bot_reason: null,
         },
         {
           onConflict: "public_id,event_id",
@@ -205,6 +289,8 @@ export async function POST(request: Request) {
         referrer: cleanText(payload.referrer, 500) || null,
         source_channel: sourceChannel,
         user_agent: userAgent || null,
+        is_bot: false,
+        bot_reason: null,
       },
       {
         onConflict: "public_id,session_id",
@@ -264,29 +350,33 @@ export async function GET() {
             clickLinksResult,
             channelViewsResult,
           ] = await Promise.all([
-            db.from("profile_views").select("id", { count: "exact", head: true }).eq("public_id", publicId),
+            db.from("profile_views").select("id", { count: "exact", head: true }).eq("public_id", publicId).eq("is_bot", false),
             db
               .from("profile_views")
               .select("id", { count: "exact", head: true })
               .eq("public_id", publicId)
+              .eq("is_bot", false)
               .gte("viewed_at", today.toISOString()),
             db
               .from("profile_views")
               .select("viewed_at")
               .eq("public_id", publicId)
+              .eq("is_bot", false)
               .gte("viewed_at", sevenDaysAgo.toISOString())
               .order("viewed_at", { ascending: true })
               .limit(10000),
-            db.from("profile_clicks").select("id", { count: "exact", head: true }).eq("public_id", publicId),
+            db.from("profile_clicks").select("id", { count: "exact", head: true }).eq("public_id", publicId).eq("is_bot", false),
             db
               .from("profile_clicks")
               .select("id", { count: "exact", head: true })
               .eq("public_id", publicId)
+              .eq("is_bot", false)
               .gte("clicked_at", today.toISOString()),
             db
               .from("profile_clicks")
               .select("clicked_at")
               .eq("public_id", publicId)
+              .eq("is_bot", false)
               .gte("clicked_at", sevenDaysAgo.toISOString())
               .order("clicked_at", { ascending: true })
               .limit(10000),
@@ -294,12 +384,14 @@ export async function GET() {
               .from("profile_clicks")
               .select("session_id,source_channel,link_id,link_type,link_title,target_url")
               .eq("public_id", publicId)
+              .eq("is_bot", false)
               .order("clicked_at", { ascending: false })
               .limit(10000),
             db
               .from("profile_views")
               .select("session_id,source_channel,referrer")
               .eq("public_id", publicId)
+              .eq("is_bot", false)
               .limit(10000),
           ]);
 

@@ -117,6 +117,16 @@ function createAnalyticsEventId() {
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function shouldSkipAnalytics() {
+  const prerendering = (document as Document & { prerendering?: boolean }).prerendering === true;
+  return (
+    navigator.doNotTrack === "1" ||
+    navigator.webdriver === true ||
+    /HeadlessChrome|PhantomJS|Puppeteer|Playwright|Selenium/i.test(navigator.userAgent) ||
+    prerendering
+  );
+}
+
 const trafficChannelAliases: Record<string, string> = {
   ig: "instagram",
   instagram: "instagram",
@@ -173,7 +183,7 @@ export default function PublicProfileClient({
   const theme = themeStyles[profile.theme] ?? themeStyles.sunset;
 
   useEffect(() => {
-    if (navigator.doNotTrack === "1") return;
+    if (shouldSkipAnalytics()) return;
 
     try {
       const sessionId = getAnalyticsSessionId();
@@ -205,7 +215,7 @@ export default function PublicProfileClient({
     item: { id: number; title: string; url: string },
     linkType: "link" | "product",
   ) => {
-    if (!item.url || item.url === "#" || navigator.doNotTrack === "1") return;
+    if (!item.url || item.url === "#" || shouldSkipAnalytics()) return;
     try {
       void fetch("/api/analytics", {
         method: "POST",
