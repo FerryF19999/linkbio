@@ -348,7 +348,7 @@ export async function GET() {
             todayClicksResult,
             recentClicksResult,
             clickLinksResult,
-            channelViewsResult,
+            channelAnalyticsResult,
           ] = await Promise.all([
             db.from("profile_views").select("id", { count: "exact", head: true }).eq("public_id", publicId).eq("is_bot", false),
             db
@@ -388,11 +388,9 @@ export async function GET() {
               .order("clicked_at", { ascending: false })
               .limit(10000),
             db
-              .from("profile_views")
-              .select("session_id,source_channel,referrer")
-              .eq("public_id", publicId)
-              .eq("is_bot", false)
-              .limit(10000),
+              .rpc("get_profile_channel_analytics", {
+                p_public_id: publicId,
+              }),
           ]);
 
           if (totalResult.error) throw totalResult.error;
@@ -402,7 +400,7 @@ export async function GET() {
           if (todayClicksResult.error) throw todayClicksResult.error;
           if (recentClicksResult.error) throw recentClicksResult.error;
           if (clickLinksResult.error) throw clickLinksResult.error;
-          if (channelViewsResult.error) throw channelViewsResult.error;
+          if (channelAnalyticsResult.error) throw channelAnalyticsResult.error;
 
           const daily = Array.from({ length: 7 }, (_, index) => {
             const date = new Date(sevenDaysAgo);
@@ -454,18 +452,12 @@ export async function GET() {
               { views: 0, clicks: 0 },
             ]),
           );
-          const sessionChannels = new Map<string, TrafficChannel>();
-          for (const view of channelViewsResult.data ?? []) {
-            const channel = resolveTrafficChannel(view.source_channel, view.referrer, "");
-            sessionChannels.set(view.session_id, channel);
-            channelCounts.get(channel)!.views += 1;
-          }
-          for (const click of clickLinksResult.data ?? []) {
-            const channel =
-              channelAliases[String(click.source_channel ?? "").toLowerCase()] ??
-              sessionChannels.get(click.session_id) ??
-              "direct";
-            channelCounts.get(channel)!.clicks += 1;
+          for (const row of channelAnalyticsResult.data ?? []) {
+            const channel = channelAliases[String(row.channel ?? "").toLowerCase()] ?? "other";
+            channelCounts.set(channel, {
+              views: Number(row.views ?? 0),
+              clicks: Number(row.clicks ?? 0),
+            });
           }
 
           return [
