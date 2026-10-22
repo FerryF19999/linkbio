@@ -121,6 +121,22 @@ type ClickDay = {
 
 type ClickPerformanceRange = "daily" | "weekly" | "monthly";
 
+function clickReportPeriod(dateValue: string, range: ClickPerformanceRange) {
+  const date = new Date(`${dateValue}T00:00:00+07:00`);
+  const format = (value: Date) => value.toLocaleDateString("id-ID", {
+    day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta",
+  });
+  if (range === "monthly") {
+    return date.toLocaleDateString("id-ID", {
+      month: "long", year: "numeric", timeZone: "Asia/Jakarta",
+    });
+  }
+  if (range === "weekly") {
+    return `${format(date)} – ${format(new Date(date.getTime() + 6 * 86_400_000))}`;
+  }
+  return format(date);
+}
+
 type ClickLinkStats = {
   linkId: string;
   linkType: string;
@@ -612,6 +628,7 @@ function Dashboard({
   const clickPerformanceRows = Array.from(
     { length: Math.max(nemuClickPerformance.length, cekHargaClickPerformance.length) },
     (_, index) => ({
+      date: nemuClickPerformance[index]?.date ?? cekHargaClickPerformance[index]?.date ?? "",
       label: nemuClickPerformance[index]?.label ?? cekHargaClickPerformance[index]?.label ?? "",
       nemu: nemuClickPerformance[index]?.clicks ?? 0,
       cekHarga: cekHargaClickPerformance[index]?.clicks ?? 0,
@@ -1147,6 +1164,39 @@ function Dashboard({
                         </div>
                       ))}
                     </div>
+                  </div>
+                  <div className="click-report-heading">
+                    <h3>Laporan Klik {clickPerformanceRange === "daily" ? "Harian" : clickPerformanceRange === "weekly" ? "Mingguan" : "Bulanan"}</h3>
+                    <p>Periode terbaru di atas. Minggu dihitung Senin–Minggu, bulan mengikuti kalender. Semua waktu dalam WIB.</p>
+                  </div>
+                  <div className="click-report-scroll" role="region" aria-label="Tabel laporan klik" tabIndex={0}>
+                    <table className="click-report-table">
+                      <caption>Jumlah klik per periode untuk NEMU AI dan Cek Harga Disini</caption>
+                      <thead>
+                        <tr><th scope="col">Periode</th><th scope="col">NEMU AI</th><th scope="col">Cek Harga</th><th scope="col">Total klik</th></tr>
+                      </thead>
+                      <tbody>
+                        {[...clickPerformanceRows].reverse().map((entry, index) => (
+                          <tr key={entry.date}>
+                            <th scope="row">
+                              {clickReportPeriod(entry.date, clickPerformanceRange)}
+                              {index === 0 && <small>Berjalan · sampai pembaruan terakhir</small>}
+                            </th>
+                            <td>{entry.nemu.toLocaleString("id-ID")}</td>
+                            <td>{entry.cekHarga.toLocaleString("id-ID")}</td>
+                            <td><strong>{(entry.nemu + entry.cekHarga).toLocaleString("id-ID")}</strong></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th scope="row">Total periode ditampilkan</th>
+                          <td>{clickPerformanceTotals.nemu.toLocaleString("id-ID")}</td>
+                          <td>{clickPerformanceTotals.cekHarga.toLocaleString("id-ID")}</td>
+                          <td>{(clickPerformanceTotals.nemu + clickPerformanceTotals.cekHarga).toLocaleString("id-ID")}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
                   </div>
                 </>
               )}
