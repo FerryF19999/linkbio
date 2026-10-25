@@ -162,17 +162,22 @@ type ChannelStats = {
   clicks: number;
 };
 
+type ChannelRange = "daily" | "last7" | "last14" | "monthly" | "all";
+type ChannelDay = { date: string; channels: Array<{ channel: string; views: number; clicks: number }> };
+
 type TrafficStats = {
   total: number;
   today: number;
   last7Days: number;
   daily: TrafficDay[];
   channels: ChannelStats[];
+  channelDaily?: ChannelDay[];
   clicks: ClickStats;
 };
 
 type TrafficResponse = {
   profiles?: Record<string, TrafficStats>;
+  channelPeriod?: { range: ChannelRange; dates: string[] };
   error?: string;
 };
 
@@ -582,6 +587,11 @@ function Dashboard({
   const [trafficUpdatedAt, setTrafficUpdatedAt] = useState<Date | null>(null);
   const [trafficVersion, setTrafficVersion] = useState(0);
   const [clickPerformanceRange, setClickPerformanceRange] = useState<ClickPerformanceRange>("daily");
+  const [channelRange, setChannelRange] = useState<ChannelRange>("last7");
+  const [channelDate, setChannelDate] = useState("");
+  const [channelMonth, setChannelMonth] = useState("");
+  const [channelDetail, setChannelDetail] = useState("all");
+  const [channelDates, setChannelDates] = useState<string[]>([]);
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
@@ -623,6 +633,18 @@ function Dashboard({
     nemu: nemuTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
     cekHarga: cekHargaTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
   }));
+  const channelTotals = channelRows.reduce((sum, row) => ({
+    nemuViews: sum.nemuViews + row.nemu.views,
+    nemuClicks: sum.nemuClicks + row.nemu.clicks,
+    cekViews: sum.cekViews + row.cekHarga.views,
+    cekClicks: sum.cekClicks + row.cekHarga.clicks,
+  }), { nemuViews: 0, nemuClicks: 0, cekViews: 0, cekClicks: 0 });
+  const channelDailyRows = channelDates.map((date) => {
+    const countDay = (profile: TrafficStats) => (profile.channelDaily?.find((day) => day.date === date)?.channels ?? [])
+      .filter((entry) => channelDetail === "all" || entry.channel === channelDetail)
+      .reduce((sum, entry) => ({ views: sum.views + entry.views, clicks: sum.clicks + entry.clicks }), { views: 0, clicks: 0 });
+    return { date, nemu: countDay(nemuTraffic), cek: countDay(cekHargaTraffic) };
+  }).reverse();
   const nemuClickPerformance = nemuTraffic.clicks[clickPerformanceRange] ?? [];
   const cekHargaClickPerformance = cekHargaTraffic.clicks[clickPerformanceRange] ?? [];
   const clickPerformanceRows = Array.from(
@@ -748,13 +770,15 @@ function Dashboard({
       setTrafficError("");
 
       try {
-        const response = await fetchAdminResource("/api/analytics", {
+        const query = new URLSearchParams({ channelRange, channelDate, channelMonth });
+        const response = await fetchAdminResource(`/api/analytics?${query}`, {
           signal: activeController.signal,
         });
         const result = (await response.json()) as TrafficResponse;
         if (!response.ok) throw new Error(result.error || "Unable to load traffic.");
         if (!cancelled) {
           setTrafficProfiles(result.profiles ?? {});
+          setChannelDates(result.channelPeriod?.dates ?? []);
           setTrafficUpdatedAt(new Date());
         }
       } catch (error) {
@@ -783,7 +807,7 @@ function Dashboard({
       window.removeEventListener("focus", refreshVisibleTraffic);
       document.removeEventListener("visibilitychange", refreshVisibleTraffic);
     };
-  }, [activeNav, trafficVersion]);
+  }, [activeNav, trafficVersion, channelRange, channelDate, channelMonth]);
 
   const addLink = () => {
     const id = ++nextId.current;
@@ -1242,12 +1266,33 @@ function Dashboard({
                   <p>Sumber kunjungan dan klik dari Instagram, TikTok, YouTube, Facebook, X, dan Threads.</p>
                 </div>
               </div>
+              <div className="channel-period-controls">
+                <div className="channel-period-tabs" role="group" aria-label="Periode analytics channel">
+                  {([
+                    ["daily", "Harian"], ["last7", "Last 7 days"], ["last14", "Last 14 days"],
+                    ["monthly", "Bulanan"], ["all", "Semua waktu"],
+                  ] as Array<[ChannelRange, string]>).map(([range, label]) => (
+                    <button type="button" key={range} aria-pressed={channelRange === range}
+                      className={channelRange === range ? "active" : ""} onClick={() => setChannelRange(range)}>{label}</button>
+                  ))}
+                </div>
+                {channelRange === "daily" && <label>Tanggal (WIB)<input type="date" aria-label="Tanggal analytics"
+                  value={channelDate || channelDates[0] || ""} onChange={(event) => setChannelDate(event.target.value)} /></label>}
+                {channelRange === "monthly" && <label>Bulan<input type="month" aria-label="Bulan analytics"
+                  value={channelMonth || channelDates[0]?.slice(0, 7) || ""} onChange={(event) => setChannelMonth(event.target.value)} /></label>}
+              </div>
+              <p className="channel-period-caption">
+                {trafficLoading ? "Memperbarui periode…" : channelRange === "all" ? "Semua waktu · total sepanjang waktu" :
+                  channelDates.length ? `${clickReportPeriod(channelDates[0], "daily")} – ${clickReportPeriod(channelDates.at(-1)!, "daily")} · WIB` : ""}
+                {" · Bot tersaring. Periode berjalan dihitung sampai pembaruan terakhir."}
+              </p>
               {trafficLoading ? (
                 <p className="analytics-state compact">Memuat channel…</p>
               ) : trafficError ? (
                 <p className="analytics-state compact error">{trafficError}</p>
               ) : (
-                <div className="channel-table">
+                <>
+                <div className="channel-table" role="region" aria-label="Ringkasan analytics per channel" tabIndex={0}>
                   <div className="channel-table-head">
                     <span>CHANNEL</span>
                     <span>NEMU VIEWS</span>
@@ -1258,13 +1303,38 @@ function Dashboard({
                   {channelRows.map((row) => (
                     <div className="channel-table-row" key={row.channel}>
                       <strong>{row.label}</strong>
-                      <span>{row.nemu.views.toLocaleString("id-ID")}</span>
-                      <span>{row.nemu.clicks.toLocaleString("id-ID")}</span>
-                      <span>{row.cekHarga.views.toLocaleString("id-ID")}</span>
-                      <span>{row.cekHarga.clicks.toLocaleString("id-ID")}</span>
+                      <span data-label="NEMU views">{row.nemu.views.toLocaleString("id-ID")}</span>
+                      <span data-label="NEMU klik">{row.nemu.clicks.toLocaleString("id-ID")}</span>
+                      <span data-label="Cek Harga views">{row.cekHarga.views.toLocaleString("id-ID")}</span>
+                      <span data-label="Cek Harga klik">{row.cekHarga.clicks.toLocaleString("id-ID")}</span>
                     </div>
                   ))}
+                  <div className="channel-table-row channel-table-total">
+                    <strong>Total periode</strong><span data-label="NEMU views">{channelTotals.nemuViews.toLocaleString("id-ID")}</span>
+                    <span data-label="NEMU klik">{channelTotals.nemuClicks.toLocaleString("id-ID")}</span>
+                    <span data-label="Cek Harga views">{channelTotals.cekViews.toLocaleString("id-ID")}</span>
+                    <span data-label="Cek Harga klik">{channelTotals.cekClicks.toLocaleString("id-ID")}</span>
+                  </div>
                 </div>
+                {channelRange !== "all" && <>
+                  <div className="channel-detail-heading"><h3>Detail Harian</h3>
+                    <label>Channel<select aria-label="Channel detail harian" value={channelDetail} onChange={(event) => setChannelDetail(event.target.value)}>
+                      <option value="all">Semua channel</option>{channelOrder.map((channel) => <option key={channel} value={channel}>{channelLabels[channel]}</option>)}
+                    </select></label>
+                  </div>
+                  <div className="click-report-scroll" role="region" aria-label="Detail harian per channel" tabIndex={0}>
+                    <table className="click-report-table channel-daily-table">
+                      <thead><tr><th scope="col">Tanggal (WIB)</th><th scope="col">NEMU views</th><th scope="col">NEMU klik</th><th scope="col">Cek Harga views</th><th scope="col">Cek Harga klik</th></tr></thead>
+                      <tbody>{channelDailyRows.map((row) => <tr key={row.date}>
+                        <th scope="row">{clickReportPeriod(row.date, "daily")}</th>
+                        <td>{row.nemu.views.toLocaleString("id-ID")}</td><td>{row.nemu.clicks.toLocaleString("id-ID")}</td>
+                        <td>{row.cek.views.toLocaleString("id-ID")}</td><td>{row.cek.clicks.toLocaleString("id-ID")}</td>
+                      </tr>)}</tbody>
+                    </table>
+                  </div>
+                  <p className="channel-hint">Geser tabel detail ke kanan untuk melihat semua kolom pada layar kecil.</p>
+                </>}
+                </>
               )}
               <p className="channel-hint">
                 Gunakan <code>?utm_source=instagram</code> (ganti nama channel sesuai platform) agar atribusi tetap akurat saat aplikasi sosial menyembunyikan referrer.

@@ -346,7 +346,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getNemuUser();
     if (!user) {
@@ -364,6 +364,40 @@ export async function GET() {
 
     const db = createSupabaseAdminClient();
     const now = new Date();
+    const params = new URL(request.url).searchParams;
+    const channelRange = params.get("channelRange") ?? "all";
+    if (!["daily", "last7", "last14", "monthly", "all"].includes(channelRange)) {
+      return Response.json({ error: "Invalid channel period." }, { status: 400 });
+    }
+    const wibDate = new Date(now.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const selectedDate = params.get("channelDate") || wibDate;
+    const selectedMonth = params.get("channelMonth") || wibDate.slice(0, 7);
+    const parsedDate = new Date(`${selectedDate}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedDate) || Number.isNaN(parsedDate.getTime()) ||
+      parsedDate.toISOString().slice(0, 10) !== selectedDate ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(selectedMonth) ||
+      Number(selectedMonth.slice(0, 4)) < 2000) {
+      return Response.json({ error: "Invalid channel date or month." }, { status: 400 });
+    }
+    let channelStart = new Date(`${wibDate}T00:00:00+07:00`);
+    let channelEnd = new Date(channelStart.getTime() + 86_400_000);
+    if (channelRange === "daily") {
+      channelStart = new Date(`${selectedDate}T00:00:00+07:00`);
+      channelEnd = new Date(channelStart.getTime() + 86_400_000);
+    } else if (channelRange === "last7" || channelRange === "last14") {
+      channelStart = new Date(channelStart.getTime() - (channelRange === "last7" ? 6 : 13) * 86_400_000);
+    } else if (channelRange === "monthly") {
+      channelStart = new Date(`${selectedMonth}-01T00:00:00+07:00`);
+      const nextMonth = new Date(`${selectedMonth}-01T00:00:00Z`);
+      nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1);
+      channelEnd = new Date(`${nextMonth.toISOString().slice(0, 10)}T00:00:00+07:00`);
+    }
+    const channelDates: string[] = [];
+    if (channelRange !== "all") {
+      for (let date = channelStart.getTime(); date < channelEnd.getTime(); date += 86_400_000) {
+        channelDates.push(new Date(date + 7 * 60 * 60 * 1000).toISOString().slice(0, 10));
+      }
+    }
     const today = startOfDay(now);
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
@@ -407,10 +441,13 @@ export async function GET() {
               .eq("is_bot", false)
               .order("clicked_at", { ascending: false })
               .limit(10000),
-            db
-              .rpc("get_profile_channel_analytics", {
-                p_public_id: publicId,
-              }),
+            channelRange === "all"
+              ? db.rpc("get_profile_channel_analytics", { p_public_id: publicId })
+              : db.rpc("get_profile_channel_period", {
+                  p_public_id: publicId,
+                  p_start: channelStart.toISOString(),
+                  p_end: channelEnd.toISOString(),
+                }),
           ]);
 
           if (totalResult.error) throw totalResult.error;
@@ -475,10 +512,9 @@ export async function GET() {
           );
           for (const row of channelAnalyticsResult.data ?? []) {
             const channel = channelAliases[String(row.channel ?? "").toLowerCase()] ?? "other";
-            channelCounts.set(channel, {
-              views: Number(row.views ?? 0),
-              clicks: Number(row.clicks ?? 0),
-            });
+            const counts = channelCounts.get(channel)!;
+            counts.views += Number(row.views ?? 0);
+            counts.clicks += Number(row.clicks ?? 0);
           }
 
           return [
@@ -488,6 +524,15 @@ export async function GET() {
               today: todayResult.count ?? 0,
               last7Days: daily.reduce((sum, day) => sum + day.views, 0),
               daily,
+              channelDaily: channelDates.map((date) => ({
+                date,
+                channels: [...trackedChannels, "direct", "other"].map((channel) => {
+                  const row = (channelAnalyticsResult.data ?? []).find(
+                    (entry: { date?: string; channel: string }) => entry.date === date && entry.channel === channel,
+                  );
+                  return { channel, views: Number(row?.views ?? 0), clicks: Number(row?.clicks ?? 0) };
+                }),
+              })),
               channels: Array.from(channelCounts, ([channel, counts]) => ({
                 channel,
                 label: channelLabels[channel],
@@ -507,7 +552,7 @@ export async function GET() {
     );
 
     return Response.json(
-      { profiles },
+      { profiles, channelPeriod: { range: channelRange, dates: channelDates } },
       {
         headers: {
           "cache-control": "no-store",
