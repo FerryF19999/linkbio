@@ -412,6 +412,7 @@ export async function GET(request: Request) {
             totalClicksResult,
             clickPerformanceResult,
             clickLinksResult,
+            linkReportResult,
             channelAnalyticsResult,
           ] = await Promise.all([
             db.from("profile_views").select("id", { count: "exact", head: true }).eq("public_id", publicId).eq("is_bot", false),
@@ -434,13 +435,12 @@ export async function GET(request: Request) {
               .rpc("get_profile_click_performance", {
                 p_public_id: publicId,
               }),
-            db
-              .from("profile_clicks")
-              .select("session_id,source_channel,link_id,link_type,link_title,target_url")
-              .eq("public_id", publicId)
-              .eq("is_bot", false)
-              .order("clicked_at", { ascending: false })
-              .limit(10000),
+            db.rpc("get_profile_link_channel_report", { p_public_id: publicId }),
+            db.rpc("get_profile_link_channel_report", {
+              p_public_id: publicId,
+              p_start: channelRange === "all" ? null : channelStart.toISOString(),
+              p_end: channelRange === "all" ? null : channelEnd.toISOString(),
+            }),
             channelRange === "all"
               ? db.rpc("get_profile_channel_analytics", { p_public_id: publicId })
               : db.rpc("get_profile_channel_period", {
@@ -456,6 +456,7 @@ export async function GET(request: Request) {
           if (totalClicksResult.error) throw totalClicksResult.error;
           if (clickPerformanceResult.error) throw clickPerformanceResult.error;
           if (clickLinksResult.error) throw clickLinksResult.error;
+          if (linkReportResult.error) throw linkReportResult.error;
           if (channelAnalyticsResult.error) throw channelAnalyticsResult.error;
 
           const daily = Array.from({ length: 7 }, (_, index) => {
@@ -484,26 +485,6 @@ export async function GET(request: Request) {
               clicks: Number(row.clicks ?? 0),
             });
           }
-          const linkCounts = new Map<
-            string,
-            { linkId: string; linkType: string; title: string; url: string; clicks: number }
-          >();
-          for (const click of clickLinksResult.data ?? []) {
-            const key = `${click.link_type}:${click.link_id}`;
-            const current = linkCounts.get(key);
-            if (current) {
-              current.clicks += 1;
-            } else {
-              linkCounts.set(key, {
-                linkId: click.link_id,
-                linkType: click.link_type,
-                title: click.link_title,
-                url: click.target_url,
-                clicks: 1,
-              });
-            }
-          }
-
           const channelCounts = new Map<TrafficChannel, { views: number; clicks: number }>(
             ([...trackedChannels, "direct", "other"] as TrafficChannel[]).map((channel) => [
               channel,
@@ -543,7 +524,8 @@ export async function GET(request: Request) {
                 today: clickPerformance.daily.at(-1)?.clicks ?? 0,
                 last7Days: clickPerformance.daily.reduce((sum, day) => sum + day.clicks, 0),
                 ...clickPerformance,
-                links: Array.from(linkCounts.values()).sort((a, b) => b.clicks - a.clicks),
+                links: clickLinksResult.data ?? [],
+                linkReport: linkReportResult.data ?? [],
               },
             },
           ];

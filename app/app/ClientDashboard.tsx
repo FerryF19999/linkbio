@@ -143,6 +143,7 @@ type ClickLinkStats = {
   title: string;
   url: string;
   clicks: number;
+  channels?: Array<{ channel: string; clicks: number }>;
 };
 
 type ClickStats = {
@@ -153,6 +154,7 @@ type ClickStats = {
   weekly: ClickDay[];
   monthly: ClickDay[];
   links: ClickLinkStats[];
+  linkReport?: ClickLinkStats[];
 };
 
 type ChannelStats = {
@@ -591,6 +593,7 @@ function Dashboard({
   const [channelDate, setChannelDate] = useState("");
   const [channelMonth, setChannelMonth] = useState("");
   const [channelDetail, setChannelDetail] = useState("all");
+  const [linkSource, setLinkSource] = useState("all");
   const [channelDates, setChannelDates] = useState<string[]>([]);
   const nextId = useRef(10_000);
   const profileFileRef = useRef<HTMLInputElement>(null);
@@ -632,6 +635,17 @@ function Dashboard({
     label: channelLabels[channel],
     nemu: nemuTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
     cekHarga: cekHargaTraffic.channels.find((entry) => entry.channel === channel) ?? { views: 0, clicks: 0 },
+  }));
+  const linkReportProfiles = [
+    { label: "NEMU AI", links: nemuTraffic.clicks.linkReport ?? [] },
+    { label: "CEK HARGA DI SINI", links: cekHargaTraffic.clicks.linkReport ?? [] },
+  ].map((profile) => ({
+    label: profile.label,
+    links: profile.links.map((item) => ({
+      ...item,
+      selectedClicks: linkSource === "all" ? item.clicks :
+        (item.channels ?? []).find((entry) => entry.channel === linkSource)?.clicks ?? 0,
+    })).filter((item) => item.selectedClicks > 0).sort((a, b) => b.selectedClicks - a.selectedClicks),
   }));
   const channelTotals = channelRows.reduce((sum, row) => ({
     nemuViews: sum.nemuViews + row.nemu.views,
@@ -1227,31 +1241,68 @@ function Dashboard({
             </div>
             <div className="chart-card click-performance-card">
               <div className="section-title">
-                <div><h2>Klik per Tautan</h2><p>Jumlah klik nyata dari halaman publik, diurutkan dari yang paling banyak.</p></div>
+                <div><h2>Klik per Tautan &amp; Sumber Channel</h2><p>Lihat channel asal pengunjung dan tautan yang mereka klik. Buka setiap tautan untuk rinciannya.</p></div>
               </div>
+              <div className="channel-period-controls">
+                <div className="channel-period-tabs" role="group" aria-label="Periode klik tautan">
+                  {([
+                    ["daily", "Harian"], ["last7", "Last 7 days"], ["last14", "Last 14 days"],
+                    ["monthly", "Bulanan"], ["all", "Semua waktu"],
+                  ] as Array<[ChannelRange, string]>).map(([range, label]) => (
+                    <button type="button" key={range} aria-pressed={channelRange === range}
+                      className={channelRange === range ? "active" : ""} onClick={() => setChannelRange(range)}>{label}</button>
+                  ))}
+                </div>
+                {channelRange === "daily" && <label>Tanggal (WIB)<input type="date" aria-label="Tanggal klik tautan"
+                  value={channelDate || channelDates[0] || ""} onChange={(event) => setChannelDate(event.target.value)} /></label>}
+                {channelRange === "monthly" && <label>Bulan<input type="month" aria-label="Bulan klik tautan"
+                  value={channelMonth || channelDates[0]?.slice(0, 7) || ""} onChange={(event) => setChannelMonth(event.target.value)} /></label>}
+                <label>Sumber traffic<select aria-label="Sumber channel klik tautan" value={linkSource} onChange={(event) => setLinkSource(event.target.value)}>
+                  <option value="all">Semua channel</option>{channelOrder.map((channel) => <option key={channel} value={channel}>{channelLabels[channel]}</option>)}
+                </select></label>
+              </div>
+              <p className="channel-period-caption">
+                {trafficLoading ? "Memperbarui periode…" : channelRange === "all" ? "Semua waktu" :
+                  channelDates.length ? `${clickReportPeriod(channelDates[0], "daily")} – ${clickReportPeriod(channelDates.at(-1)!, "daily")} · WIB` : ""}
+                {" · Periode mengikuti Analytics per Channel. Bot tersaring."}
+              </p>
               {trafficLoading ? (
                 <p className="analytics-state compact">Memuat klik…</p>
               ) : trafficError ? (
                 <p className="analytics-state compact error">{trafficError}</p>
               ) : (
                 <div className="click-profile-grid">
-                  {[
-                    ["NEMU AI", nemuTraffic.clicks.links],
-                    ["CEK HARGA DI SINI", cekHargaTraffic.clicks.links],
-                  ].map(([profileLabel, clickLinks]) => (
-                    <section className="click-profile-list" key={String(profileLabel)}>
+                  {linkReportProfiles.map(({ label: profileLabel, links: clickLinks }) => (
+                    <section className="click-profile-list" key={profileLabel}>
                       <header>
-                        <strong>{String(profileLabel)}</strong>
-                        <span>{(clickLinks as ClickLinkStats[]).reduce((sum, item) => sum + item.clicks, 0)} klik</span>
+                        <strong>{profileLabel}</strong>
+                        <span>{clickLinks.reduce((sum, item) => sum + item.selectedClicks, 0).toLocaleString("id-ID")} klik</span>
                       </header>
-                      {(clickLinks as ClickLinkStats[]).length === 0 ? (
-                        <p>Belum ada klik.</p>
+                      {clickLinks.length === 0 ? (
+                        <p>Belum ada klik untuk periode dan channel ini.</p>
                       ) : (
-                        (clickLinks as ClickLinkStats[]).map((item) => (
-                          <div key={`${item.linkType}-${item.linkId}`}>
-                            <span><strong>{item.title}</strong><small>{item.url}</small></span>
-                            <b>{item.clicks}</b>
-                          </div>
+                        clickLinks.map((item) => (
+                          <details className="link-source-detail" key={`${item.linkType}-${item.linkId}`}>
+                            <summary>
+                              <span className="link-source-title"><strong>{item.title}</strong><small title={item.url}>{item.url}</small>
+                                <em>{linkSource === "all"
+                                  ? (item.channels ?? []).slice(0, 3).map((entry) => `${channelLabels[entry.channel] ?? entry.channel}: ${entry.clicks}`).join(" · ")
+                                  : `${channelLabels[linkSource]} · ${item.selectedClicks} klik`}</em>
+                              </span>
+                              <b>{item.selectedClicks.toLocaleString("id-ID")}</b><span className="link-source-chevron" aria-hidden="true">⌄</span>
+                            </summary>
+                            <div className="link-source-breakdown">
+                              <p>Channel asal → tautan ini <span>{linkSource === "all" ? "Semua channel" : channelLabels[linkSource]}</span></p>
+                              {(item.channels ?? []).filter((entry) => linkSource === "all" || entry.channel === linkSource).map((entry) => (
+                                <div className="link-source-channel" key={entry.channel}>
+                                  <span>{channelLabels[entry.channel] ?? entry.channel}</span>
+                                  <strong>{entry.clicks.toLocaleString("id-ID")} klik</strong>
+                                  <small>{(entry.clicks / item.clicks * 100).toLocaleString("id-ID", { maximumFractionDigits: 1 })}%</small>
+                                </div>
+                              ))}
+                              <small className="link-source-note">Persentase dari {item.clicks.toLocaleString("id-ID")} klik ke tautan ini pada periode terpilih. Direct berarti sumber tidak terdeteksi.</small>
+                            </div>
+                          </details>
                         ))
                       )}
                     </section>

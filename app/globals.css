@@ -289,7 +289,25 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .channel-period-tabs button { padding: 10px 14px; border: 1px solid #e1dce9; background: #fff; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; color: #555; }
 .channel-period-tabs button.active { background: #6b25ed; color: #fff; border-color: #6b25ed; }
 .channel-period-controls label, .channel-detail-heading label { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #666; flex-wrap: wrap; }
-.channel-period-controls input, .channel-detail-heading select { min-height: 40px; max-width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 9px; background: #fff; color: #222; }
+.channel-period-controls input, .channel-period-controls select, .channel-detail-heading select { min-height: 40px; max-width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 9px; background: #fff; color: #222; }
+.link-source-detail { border-top: 1px solid #eeeeea; }
+.link-source-detail summary { display: flex; align-items: center; gap: 10px; padding: 15px; cursor: pointer; list-style: none; }
+.link-source-detail summary::-webkit-details-marker { display: none; }
+.link-source-detail summary:focus-visible { outline: 2px solid #6b25ed; outline-offset: -3px; }
+.link-source-title { flex: 1; min-width: 0; }
+.link-source-title strong { display: block; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.link-source-title small { display: block; margin-top: 3px; font-size: 10px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.link-source-title em { display: block; margin-top: 6px; color: #6b25ed; font-size: 10px; font-style: normal; line-height: 1.6; }
+.link-source-detail summary > b { flex-shrink: 0; padding: 6px 8px; border-radius: 9px; background: #efe7ff; color: #6b25ed; font-size: 13px; font-variant-numeric: tabular-nums; }
+.link-source-chevron { font-size: 16px; color: #777; }
+.link-source-detail[open] .link-source-chevron { transform: rotate(180deg); }
+.link-source-breakdown { background: #faf8ff; padding: 12px 15px 15px; }
+.link-source-breakdown > p { margin: 0 0 10px; color: #555; font-size: 11px; line-height: 1.6; }
+.link-source-breakdown > p > span { display: block; font-size: 10px; color: #777; }
+.link-source-channel { display: grid; grid-template-columns: 1fr auto 42px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9e3f2; font-size: 12px; }
+.link-source-channel strong { color: #6b25ed; font-size: 12px; font-variant-numeric: tabular-nums; }
+.link-source-channel small { text-align: right; color: #777; font-size: 10px; }
+.link-source-note { display: block; margin-top: 12px; font-size: 10px; color: #777; line-height: 1.6; }
 .channel-period-caption { margin: 0 0 18px; font-size: 12px; color: #777; line-height: 1.7; }
 .channel-table-head, .channel-table-row { min-width: 610px; }
 .channel-table-total { font-weight: 800; background: #f7f6fa; }
