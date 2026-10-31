@@ -19,7 +19,18 @@ function supabaseAnonKey() {
   return value;
 }
 
-export async function createSupabaseServerClient() {
+export async function clearSupabaseSessionCookies() {
+  const cookieStore = await cookies();
+  const projectRef = new URL(supabaseUrl()).hostname.split(".")[0];
+  const prefix = `sb-${projectRef}-auth-token`;
+  for (const { name } of cookieStore.getAll()) {
+    if (name === prefix || name.startsWith(`${prefix}.`) || name === `${prefix}-code-verifier`) {
+      cookieStore.delete(name);
+    }
+  }
+}
+
+export async function createSupabaseServerClient({ requireCookieWrite = false } = {}) {
   const cookieStore = await cookies();
 
   return createServerClient(supabaseUrl(), supabaseAnonKey(), {
@@ -32,7 +43,8 @@ export async function createSupabaseServerClient() {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options);
           });
-        } catch {
+        } catch (error) {
+          if (requireCookieWrite) throw error;
           // Server Components cannot always write cookies.
         }
       },

@@ -38,7 +38,7 @@ async function fetchAdminResource(input: string, init?: RequestInit) {
       adminRedirectStarted = true;
       const destination =
         response.status === 401
-          ? "/login?error=Your+admin+session+expired.+Please+log+in+again."
+          ? "/login?reason=session-expired"
           : "/login?denied=1";
       window.location.replace(destination);
     }

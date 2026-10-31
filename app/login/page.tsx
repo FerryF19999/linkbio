@@ -1,21 +1,26 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { adminEmail, getNemuUser, isAdminUser } from "../auth";
-import { signIn } from "./actions";
+import LoginForm from "./LoginForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ denied?: string; error?: string }>;
+  searchParams: Promise<{ denied?: string; error?: string; reason?: string; notice?: string }>;
 }) {
-  const user = await getNemuUser();
+  const { user, authUnavailable } = await getNemuUser()
+    .then((user) => ({ user, authUnavailable: false }))
+    .catch(() => ({ user: null, authUnavailable: true }));
   if (isAdminUser(user)) redirect("/app");
 
   const params = await searchParams;
   const denied = Boolean(user) || params.denied === "1";
-  const error = params.error ?? "";
+  const sessionExpired = params.reason === "session-expired" || /session expired/i.test(params.error ?? "");
+  const error = authUnavailable
+    ? "Layanan pengecekan sesi sedang bermasalah. Coba login kembali sebentar lagi."
+    : sessionExpired ? "" : params.error ? "Login sebelumnya belum berhasil. Periksa password lalu coba lagi." : "";
 
   return (
     <main className="login-page">
@@ -31,46 +36,15 @@ export default async function LoginPage({
           <span className="login-kicker">PRIVATE ADMIN ACCESS</span>
           <h1>Admin login.</h1>
           <p>Only the registered NEMU administrator can open this dashboard.</p>
-          {(denied || error) && (
+          {denied && (
             <div className="login-denied" role="alert">
-              <strong>{denied ? "Access denied" : "Login failed"}</strong>
+              <strong>Access denied</strong>
               <span>
-                {denied
-                  ? `Only ${adminEmail()} can access this dashboard.`
-                  : error}
+                {`Only ${adminEmail()} can access this dashboard.`}
               </span>
             </div>
           )}
-          <form action={signIn} className="admin-login-form">
-            <div className="admin-account-field">
-              <label htmlFor="admin-email">Admin email</label>
-              <input
-                id="admin-email"
-                name="email"
-                type="email"
-                value={adminEmail()}
-                readOnly
-              />
-            </div>
-            <div className="admin-account-field">
-              <label htmlFor="admin-password">Password</label>
-              <input
-                id="admin-password"
-                name="password"
-                type="password"
-                minLength={8}
-                autoComplete="current-password"
-                placeholder="Enter your admin password"
-                required
-                autoFocus
-              />
-            </div>
-            <button type="submit">
-              <span className="chatgpt-mark">N</span>
-              <b>Log in to dashboard</b>
-              <span>→</span>
-            </button>
-          </form>
+          <LoginForm email={adminEmail()} sessionExpired={sessionExpired} initialError={error} sessionReset={params.notice === "session-reset"} />
           <div className="login-divider">
             <span>Protected by Supabase Auth</span>
           </div>

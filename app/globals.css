@@ -613,6 +613,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .admin-account-field { margin-bottom: 14px; }
 .admin-account-field label { display: block; color: #74746d; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .09em; margin: 0 0 7px 3px; }
 .admin-account-field input { width: 100%; min-height: 56px; border: 1px solid #d9d8d2; border-radius: 14px; background: #f8f8f5; color: #222; padding: 0 16px; font: inherit; font-size: 14px; }
+.login-notice { background: #f2edff; color: #462a89; border-radius: 13px; padding: 13px 15px; margin-bottom: 18px; }
+.login-notice strong, .login-notice span { display: block; font-size: 14px; line-height: 1.5; }
+.login-notice strong { margin-bottom: 4px; }
+.admin-password-control { position: relative; }
+.admin-password-control input { padding-right: 58px; font-size: 16px; }
+.admin-login-form .admin-password-toggle { position: absolute; right: 4px; top: 4px; width: 48px; min-height: 48px; height: 48px; padding: 0; display: grid; grid-template-columns: none; place-items: center; border: 0; border-radius: 10px; background: transparent; color: #46413f; box-shadow: none; }
+.admin-password-toggle svg { width: 21px; height: 21px; }
+.admin-login-form .admin-password-toggle:hover { background: #eae6f2; }
+.admin-password-toggle:focus-visible, .login-reset-form button:focus-visible { outline: 2px solid #7543ee; outline-offset: 2px; }
+.admin-login-form > button:disabled { opacity: .65; cursor: wait; }
+.login-reset-form { margin-top: 16px; text-align: center; }
+.login-copy .login-reset-form button { display: inline-block; width: auto; min-height: 44px; padding: 8px 12px; background: transparent; border: 0; color: #57339c; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: inherit; font-size: 14px; }
+.login-reset-form small { display: block; font-size: 12px; line-height: 1.5; color: #67625e; }
 .admin-switch-account { min-height: 58px; border-radius: 14px; background: #111; color: #fff; padding: 0 18px; display: flex; align-items: center; justify-content: space-between; text-decoration: none; font-weight: 750; font-size: 14px; }
 .waitlist-actions { display: flex; justify-content: flex-end; gap: 8px; margin: -8px 0 15px; }
 .waitlist-actions button { border: 1px solid #dcdcd6; background: #fff; border-radius: 10px; padding: 9px 13px; font-weight: 700; cursor: pointer; }

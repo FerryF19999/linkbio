@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { AuthServiceUnavailableError, isMissingAuthSession } from "@/lib/auth-errors";
 
 export type NemuUser = {
   displayName: string;
@@ -19,7 +20,13 @@ export async function getNemuUser(): Promise<NemuUser | null> {
     const supabase = await createSupabaseServerClient();
     const {
       data: { user },
+      error,
     } = await supabase.auth.getUser();
+
+    if (error) {
+      if (isMissingAuthSession(error)) return null;
+      throw new AuthServiceUnavailableError();
+    }
 
     if (!user?.email) return null;
     const fullName =
@@ -32,8 +39,11 @@ export async function getNemuUser(): Promise<NemuUser | null> {
       email: user.email,
       fullName,
     };
-  } catch {
-    return null;
+  } catch (error) {
+    if (isMissingAuthSession(error)) return null;
+    // An unavailable Auth service is not evidence of an expired session.
+    // Let API handlers return a retryable server error, not a false 401/logout.
+    throw new AuthServiceUnavailableError();
   }
 }
 

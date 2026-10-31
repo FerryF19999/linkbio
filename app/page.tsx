@@ -11,7 +11,7 @@ const featureItems = [
 ];
 
 export default async function LandingPage() {
-  const user = await getNemuUser();
+  const user = await getNemuUser().catch(() => null);
   const isAdmin = isAdminUser(user);
 
   return (
