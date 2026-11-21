@@ -1,92 +1,122 @@
+import Image from "next/image";
 import Link from "next/link";
+import { FiArrowRight, FiArrowUpRight, FiPlus, FiShoppingBag } from "react-icons/fi";
+import { SiInstagram, SiSpotify, SiTiktok, SiWhatsapp, SiYoutube } from "react-icons/si";
 import { getNemuUser, isAdminUser } from "./auth";
+import HeroShowcase from "./HeroShowcase";
+import LandingHeader from "./LandingHeader";
+import ProfileShowcase from "./ProfileShowcase";
+import ThemePreview from "./ThemePreview";
 import WaitlistForm from "./WaitlistForm";
+import styles from "./landing.module.css";
 
 export const dynamic = "force-dynamic";
 
-const featureItems = [
-  ["One link, every side of you", "Bring social profiles, products, projects, and contact details together."],
-  ["Designed in real time", "Choose a theme, edit your content, and see every change instantly."],
-  ["Made to grow", "Collect emails, share a QR code, and understand what your audience clicks."],
+const launchPrice = "Rp19.000";
+const platforms = [
+  { name: "Instagram", Icon: SiInstagram, color: "#ffc9e5" },
+  { name: "TikTok", Icon: SiTiktok, color: "#bdeded" },
+  { name: "YouTube", Icon: SiYoutube, color: "#ffcec0" },
+  { name: "Spotify", Icon: SiSpotify, color: "#bbf5c8" },
+  { name: "WhatsApp", Icon: SiWhatsapp, color: "#ecf6aa" },
+  { name: "Toko online", Icon: FiShoppingBag, color: "#dcd4ff" },
 ];
 
+const questions = [
+  ["Apa itu NEMU Link Bio?", "NEMU Link Bio menyatukan tautan ke toko, portofolio, dan media sosial di satu halaman yang bisa kamu bagikan."],
+  ["Apakah daftar tunggunya gratis?", "Ya. Cukup isi nama dan email. Kami akan mengabarimu saat akses dibuka."],
+  ["Perlu ganti alamat bio kalau tautanku berubah?", "Kamu bisa mengubah tujuan dan urutan tautan dari dashboard. Alamat profil yang sudah kamu bagikan tetap sama."],
+];
+
+function PlatformSection() {
+  const tiles = platforms.map(({ name, Icon, color }) => (
+    <li key={name} style={{ backgroundColor: color }}>
+      <Icon aria-hidden="true" /><span>{name}</span>
+    </li>
+  ));
+  return (
+    <section className={styles.platforms} aria-labelledby="platform-title">
+      <div className={styles.split}>
+        <div className={styles.sectionCopy}>
+          <h2 id="platform-title">Satu alamat di semua platform.</h2>
+          <p>Pasang profil NEMU di bio media sosialmu. Untuk pelanggan di toko, bagikan profil yang sama lewat kode QR.</p>
+        </div>
+        <div className={styles.platformBoard}>
+          <ul>{tiles.slice(0, 3)}</ul>
+          <Link href="/nemu-ai" aria-label="Buka profil NEMU AI">
+            <Image src="/favicon.svg" width={24} height={24} alt="" />
+            <span>linkbio.nemu-ai.com/<strong>nemu-ai</strong></span>
+            <FiArrowUpRight aria-hidden="true" />
+          </Link>
+          <ul>{tiles.slice(3)}</ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default async function LandingPage() {
-  const user = await getNemuUser().catch(() => null);
-  const isAdmin = isAdminUser(user);
+  const isAdmin = isAdminUser(await getNemuUser().catch(() => null));
 
   return (
-    <main className="landing-page">
-      <nav className="landing-nav">
-        <Link className="landing-brand" href="/"><span>N</span><div><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div></Link>
-        <div>
-          <a href="#features">Features</a>
-          <a href="#showcase">Showcase</a>
-          <Link className="landing-login-link" href={isAdmin ? "/app" : "/login"}>{isAdmin ? "Dashboard" : "Log in"}</Link>
-          <Link className="landing-nav-cta" href={isAdmin ? "/app" : "#waitlist"}>{isAdmin ? "Open app" : "Join waitlist"}</Link>
-        </div>
-      </nav>
-
-      <section className="landing-hero">
-        <div className="landing-hero-copy">
-          <span className="landing-kicker">YOUR INTERNET, BEAUTIFULLY ORGANIZED</span>
-          <h1>Everything you are.<br /><em>One NEMU link.</em></h1>
-          <p>Join the early-access list for a beautiful link-in-bio page built for your content, products, community, and next big idea.</p>
-          {isAdmin ? (
-            <div className="landing-hero-actions">
-              <Link href="/app">Go to dashboard <span>→</span></Link>
-              <a href="#showcase">See how it works</a>
+    <div className={styles.page}>
+      <LandingHeader isAdmin={isAdmin} />
+      <main>
+        <section className={styles.hero} aria-labelledby="hero-title">
+          <div className={styles.heroInner}>
+            <div className={styles.heroCopy}>
+              <h1 id="hero-title">Satu link&nbsp;bio untuk karya, toko, dan kontenmu.</h1>
+              <p>Pilih tema, atur tautanmu, lalu bagikan semuanya lewat satu halaman NEMU.</p>
+              <Link className={styles.primary} href={isAdmin ? "/app" : "#waitlist"}>
+                {isAdmin ? "Buka dashboard" : "Daftar akses awal"} <FiArrowRight aria-hidden="true" />
+              </Link>
+              <a className={styles.priceHint} href="#harga">Rencana harga peluncuran <strong>{launchPrice}/bulan</strong></a>
             </div>
-          ) : (
-            <WaitlistForm />
-          )}
-          <div className="landing-trust"><span>✦</span><p>No design skills needed<br /><strong>Live in minutes</strong></p></div>
-        </div>
+            <HeroShowcase />
+          </div>
+        </section>
 
-        <div className="landing-visual" id="showcase">
-          <div className="landing-orbit orbit-one" />
-          <div className="landing-orbit orbit-two" />
-          <div className="landing-dashboard-card">
-            <div className="ldc-top"><i>N</i><span /><span /><b>•••</b></div>
-            <div className="ldc-add">＋ Add link</div>
-            {["My latest work", "Shop the collection", "Join my newsletter"].map((item, index) => (
-              <div className="ldc-link" key={item}><i>{["↗", "▱", "✉"][index]}</i><div><strong>{item}</strong><span>https://nemu.link/...</span></div><b>●</b></div>
+        <ProfileShowcase />
+        <ThemePreview />
+        <PlatformSection />
+
+        <section className={styles.pricing} id="harga" aria-labelledby="price-title">
+          <div className={styles.split}>
+            <div className={styles.price}>
+              <h2 id="price-title">Rencana harga peluncuran</h2>
+              <p className={styles.rate}><strong>{launchPrice}</strong> <span>/ bulan</span></p>
+              <p>Termasuk pilihan tema, kode QR profil, dan statistik klik tautan.</p>
+            </div>
+            <div className={styles.signupForm} id="waitlist">
+              {isAdmin ? (
+                <Link className={styles.primary} href="/app">Buka dashboard <FiArrowRight aria-hidden="true" /></Link>
+              ) : (
+                <>
+                  <h3>Daftar akses awal</h3>
+                  <p>Daftar tunggunya gratis. Kami akan mengabarimu lewat email saat akses dibuka.</p>
+                  <WaitlistForm />
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.faq} id="faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">Pertanyaan umum</h2>
+          <div className={styles.questions}>
+            {questions.map(([question, answer]) => (
+              <details key={question}>
+                <summary>{question}<FiPlus aria-hidden="true" /></summary>
+                <p>{answer}</p>
+              </details>
             ))}
           </div>
-          <div className="landing-phone">
-            <div className="landing-phone-screen">
-              <button>↗</button>
-              <div className="landing-avatar">NF</div>
-              <strong>@nemuai</strong>
-              <p>Creator, builder, and curious human.</p>
-              <div className="landing-social-row">◎　♪　▶</div>
-              {["My latest work", "Shop the collection", "Join my newsletter"].map((item) => <span key={item}>{item}<b>•••</b></span>)}
-              <small>NEMU Link Bio<br /><em>Powered by NEMU AI</em></small>
-            </div>
-          </div>
-          <div className="landing-float-card"><span>↗</span><div><strong>+42%</strong><small>More clicks this week</small></div></div>
-        </div>
-      </section>
-
-      <section className="landing-logo-strip"><span>INSTAGRAM</span><span>YOUTUBE</span><span>TIKTOK</span><span>SPOTIFY</span><span>WHATSAPP</span><span>SHOP</span></section>
-
-      <section className="landing-features" id="features">
-        <div className="landing-section-heading"><span>BUILT FOR EVERY CREATOR</span><h2>Small link.<br />Big possibilities.</h2></div>
-        <div className="landing-feature-grid">
-          {featureItems.map(([title, copy], index) => <article key={title}><span>0{index + 1}</span><div className={`feature-art feature-art-${index + 1}`}><i /><i /><i /></div><h3>{title}</h3><p>{copy}</p></article>)}
-        </div>
-      </section>
-
-      <section className="landing-final-cta">
-        <span>✦</span><h2>Your audience is already looking.<br />Give them one place to find you.</h2>
-        <Link href={isAdmin ? "/app" : "#waitlist"}>{isAdmin ? "Open dashboard" : "Join the NEMU waitlist"} →</Link>
-        <small>Powered by NEMU AI</small>
-      </section>
-
-      <footer className="landing-footer">
-        <div><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div>
-        <p>One beautiful link for everything you create.</p>
-        <div><a href="#features">Features</a><Link href="/login">Log in</Link><span>© 2026 NEMU AI</span></div>
+        </section>
+      </main>
+      <footer className={styles.footer}>
+        <Link href="/" aria-label="NEMU Link Bio, beranda"><Image src="/favicon.svg" alt="" width={28} height={28} /><strong>NEMU Link Bio</strong></Link>
+        <span>© 2026 NEMU AI</span>
       </footer>
-    </main>
+    </div>
   );
 }

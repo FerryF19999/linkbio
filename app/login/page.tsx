@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import { FiArrowLeft } from "react-icons/fi";
 import { redirect } from "next/navigation";
 import { adminEmail, getNemuUser, isAdminUser } from "../auth";
 import LoginForm from "./LoginForm";
@@ -25,41 +27,23 @@ export default async function LoginPage({
   return (
     <main className="login-page">
       <Link className="login-brand" href="/">
-        <span>N</span>
-        <div>
-          <strong>NEMU Link Bio</strong>
-          <small>Powered by NEMU AI</small>
-        </div>
+        <Image src="/favicon.svg" alt="" width={32} height={32} />
+        <strong>NEMU Link Bio</strong>
       </Link>
       <section className="login-card login-card-admin">
         <div className="login-copy">
-          <span className="login-kicker">PRIVATE ADMIN ACCESS</span>
-          <h1>Admin login.</h1>
-          <p>Only the registered NEMU administrator can open this dashboard.</p>
+          <h1>Masuk admin</h1>
+          <p>Masuk dengan akun admin NEMU untuk mengelola profil dan tautan.</p>
           {denied && (
             <div className="login-denied" role="alert">
-              <strong>Access denied</strong>
-              <span>
-                {`Only ${adminEmail()} can access this dashboard.`}
-              </span>
+              <strong>Akses terbatas</strong>
+              <span>Gunakan akun admin yang tertera di bawah.</span>
             </div>
           )}
           <LoginForm email={adminEmail()} sessionExpired={sessionExpired} initialError={error} sessionReset={params.notice === "session-reset"} />
-          <div className="login-divider">
-            <span>Protected by Supabase Auth</span>
-          </div>
-          <ul>
-            <li><span>✓</span>Restricted to one administrator</li>
-            <li><span>✓</span>Secure server-managed session</li>
-            <li><span>✓</span>Public bio remains shareable</li>
-          </ul>
-          <small>
-            Your password is handled by Supabase Auth and is never stored in
-            the NEMU application database.
-          </small>
         </div>
       </section>
-      <Link className="login-back" href="/">← Back to home</Link>
+      <Link className="login-back" href="/"><FiArrowLeft aria-hidden="true" /> Kembali ke beranda</Link>
     </main>
   );
 }

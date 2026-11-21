@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { IconType } from "react-icons";
 import { FaLinkedin } from "react-icons/fa6";
-import { FiExternalLink, FiGlobe, FiMail } from "react-icons/fi";
+import {
+  FiArchive, FiArrowDown, FiArrowUp, FiArrowUpRight, FiBarChart2, FiClock,
+  FiCopy, FiEdit3, FiExternalLink, FiEye, FiFolderPlus, FiGlobe, FiGrid,
+  FiLink, FiLogOut, FiMail, FiMoreHorizontal, FiPlus, FiRotateCcw, FiShare2,
+  FiShoppingBag, FiSliders, FiStar, FiUsers, FiX,
+} from "react-icons/fi";
+import { destinationLabel } from "@/lib/profile-links";
+import styles from "./Editor.module.css";
 import QRCode from "react-qr-code";
 import {
   SiAppstore,
@@ -286,21 +293,18 @@ const starterLinks: LinkItem[] = [
   { id: 3, title: "Let’s work together", url: "mailto:hello@example.com", icon: "email", color: "#7c3aed", enabled: true, clicks: 7 },
 ];
 
-const navItems = [
-  ["Links", "⌁"],
-  ["Shop", "▱"],
-  ["Design", "✦"],
-  ["Audience", "♙"],
-  ["Waitlist", "◷"],
-  ["Challenge", "★"],
-  ["Insights", "▥"],
+type NavigationItem = [label: string, icon: IconType];
+const navItems: NavigationItem[] = [
+  ["Links", FiLink], ["Shop", FiShoppingBag], ["Design", FiSliders], ["Audience", FiUsers],
+  ["Waitlist", FiClock], ["Challenge", FiStar], ["Insights", FiBarChart2],
 ];
-
-const growItems = [
-  ["Share", "↗"],
-  ["Email capture", "✉"],
-  ["QR code", "▦"],
+const growItems: NavigationItem[] = [
+  ["Share", FiShare2], ["Email capture", FiMail], ["QR code", FiGrid],
 ];
+const navGroups: { title: string; items: NavigationItem[] }[] = [
+  { title: "My page", items: navItems }, { title: "Grow", items: growItems },
+];
+const mobileItems = [navItems[0], navItems[2], growItems[0], growItems[2]];
 
 function ThemePreview({ theme, selected, onClick, compact = false }: { theme: Theme; selected?: boolean; onClick?: () => void; compact?: boolean }) {
   return (
@@ -308,6 +312,7 @@ function ThemePreview({ theme, selected, onClick, compact = false }: { theme: Th
       className={`theme-card ${selected ? "selected" : ""} ${compact ? "compact" : ""}`}
       onClick={onClick}
       aria-label={`Select ${theme.name} theme`}
+      aria-pressed={selected}
       type="button"
     >
       <div className={`mini-profile pattern-${theme.pattern ?? "none"}`} style={{ background: theme.bg, color: theme.text }}>
@@ -488,6 +493,7 @@ function PublicPreview({
   emailCapture = false,
   onLinkClick,
   onSubscribe,
+  onCopyLink,
 }: {
   theme: Theme;
   name: string;
@@ -496,18 +502,26 @@ function PublicPreview({
   profileImage?: string;
   products?: ProductItem[];
   emailCapture?: boolean;
+  onCopyLink: () => void;
   onLinkClick?: (id: number) => void;
   onSubscribe?: (email: string) => void;
 }) {
   const [email, setEmail] = useState("");
   return (
     <div className={`public-preview pattern-${theme.pattern ?? "none"}`} style={{ background: theme.bg, color: theme.text }}>
-      <button className="preview-share" aria-label="Share profile">↗</button>
-      <div className={`preview-avatar ${profileImage ? "has-image" : ""}`} style={profileImage ? { backgroundImage: `url(${profileImage})` } : undefined}>{profileImage ? "" : "NF"}</div>
-      <h2>@{name || "yourname"}</h2>
-      <p>{bio || "Your story, your links, all in one place."}</p>
+      <div className={styles.previewBrand}>
+        <strong><i aria-hidden="true" />NEMU Link Bio</strong>
+        <button aria-label="Copy profile link" onClick={onCopyLink}><FiShare2 aria-hidden="true" /></button>
+      </div>
+      <div className={styles.previewIdentity}>
+        <div className={`preview-avatar ${profileImage ? "has-image" : ""}`} style={profileImage ? { backgroundImage: `url(${profileImage})` } : undefined}>{profileImage ? "" : (name || "N").slice(0, 2).toUpperCase()}</div>
+        <h2>@{name || "yourname"}</h2>
+      </div>
+      {bio && <p className={styles.previewBio}>{bio}</p>}
       <div className="preview-socials">
-        {links.slice(0, 5).map((link) => <span key={link.id}><SocialIcon name={link.icon} title={link.title} /></span>)}
+        {links.filter((link) => link.enabled && link.kind !== "collection" && ["instagram", "tiktok", "linkedin", "youtube", "facebook", "x", "threads", "whatsapp"].includes(link.icon)).slice(0, 6).map((link) => (
+          <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" aria-label={link.title || link.icon} onClick={() => onLinkClick?.(link.id)}><SocialIcon name={link.icon} title={link.title} /></a>
+        ))}
       </div>
       <div className="preview-links">
         {links.filter((link) => link.enabled).map((link) => link.kind === "collection" ? (
@@ -531,22 +545,22 @@ function PublicPreview({
               >
                 {link.image ? null : <SocialIcon name={link.icon} title={link.title} />}
               </span>
-              <strong>{link.featured && <small className="featured-badge">Fitur Baru</small>}{link.title || "Untitled link"}</strong><b>•••</b>
+              <strong>{link.featured && <small className="featured-badge">{link.badge || "Fitur Baru"}</small>}{link.title || destinationLabel(link.url) || "Buka tautan"}{!link.featured && link.title && <small>{destinationLabel(link.url)}</small>}</strong><FiArrowUpRight aria-hidden="true" />
             </a>
           ))}
         {products.filter((product) => product.enabled).map((product) => (
           <a key={product.id} href={product.url || "#"} target="_blank" rel="noreferrer" className="product-preview-link" style={{ background: theme.button, color: theme.buttonText, borderColor: theme.pattern === "outline" ? theme.text : "transparent" }}>
-            <span>▣</span><strong>{product.title}<small>{product.price}</small></strong><b>↗</b>
+            <span><FiShoppingBag aria-hidden="true" /></span><strong>{product.title}<small>{product.price}</small></strong><FiArrowUpRight aria-hidden="true" />
           </a>
         ))}
       </div>
       {emailCapture && (
         <form className="preview-email" onSubmit={(event) => { event.preventDefault(); if (email.includes("@")) { onSubscribe?.(email); setEmail(""); } }}>
           <strong>Stay in the loop</strong>
-          <div><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>
+          <div><input aria-label="Email address" value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>
         </form>
       )}
-      <div className="preview-brand"><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></div>
+
     </div>
   );
 }
@@ -560,7 +574,7 @@ function Dashboard({
 }) {
   const [activeNav, setActiveNav] = useState("Links");
   const [themeId, setThemeId] = useState(initial.theme);
-  const [links, setLinks] = useState<LinkItem[]>(initial.links.length ? initial.links : starterLinks);
+  const [links, setLinks] = useState<LinkItem[]>(initial.links ?? starterLinks);
   const [name, setName] = useState(initial.name || "nemuai");
   const [bio, setBio] = useState(initial.bio);
   const [profileImage, setProfileImage] = useState(initial.profileImage ?? "");
@@ -595,10 +609,40 @@ function Dashboard({
   const [channelDetail, setChannelDetail] = useState("all");
   const [linkSource, setLinkSource] = useState("all");
   const [channelDates, setChannelDates] = useState<string[]>([]);
-  const nextId = useRef(10_000);
+  const nextId = useRef(Math.max(10_000, ...[...(initial.links ?? []), ...(initial.archive ?? []), ...(initial.products ?? [])].map((item) => item.id)));
+  const newTitleToFocus = useRef<number | null>(null);
+  const toolsDialog = useRef<HTMLDialogElement>(null);
+  const previewTrigger = useRef<HTMLButtonElement>(null);
+  const closePreviewButton = useRef<HTMLButtonElement>(null);
+  const editorPanel = useRef<HTMLElement>(null);
   const profileFileRef = useRef<HTMLInputElement>(null);
   const theme = themes.find((item) => item.id === themeId) ?? themes[1];
   const publicUrl = `${PUBLIC_PROFILE_ORIGIN}/${PUBLIC_PROFILE_ID}`;
+  const selectSection = (section: string) => {
+    setActiveNav(section);
+    toolsDialog.current?.close();
+    editorPanel.current?.scrollTo(0, 0);
+    if (window.matchMedia("(max-width: 820px)").matches) window.scrollTo(0, 0);
+  };
+  useEffect(() => {
+    if (!mobilePreview) return;
+    closePreviewButton.current?.focus();
+    const desktop = window.matchMedia("(min-width: 1181px)");
+    const closeOnDesktop = () => { if (desktop.matches) setMobilePreview(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobilePreview(false);
+        requestAnimationFrame(() => previewTrigger.current?.focus());
+      }
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => {
+      window.removeEventListener("keydown", onEscape);
+      desktop.removeEventListener("change", closeOnDesktop);
+    };
+  }, [mobilePreview]);
+
   const emptyTraffic: TrafficStats = {
     total: 0,
     today: 0,
@@ -825,6 +869,7 @@ function Dashboard({
 
   const addLink = () => {
     const id = ++nextId.current;
+    newTitleToFocus.current = id;
     setLinks((items) => [{ id, title: "New link", url: "https://", icon: "external", color: "#171717", enabled: true, clicks: 0 }, ...items]);
   };
 
@@ -834,6 +879,7 @@ function Dashboard({
 
   const addCollection = () => {
     const id = ++nextId.current;
+    newTitleToFocus.current = id;
     setLinks((items) => [...items, { id, title: "New collection", url: "#", icon: "external", color: "#7c2cff", enabled: true, clicks: 0, kind: "collection" }]);
   };
 
@@ -878,8 +924,12 @@ function Dashboard({
   };
 
   const copyProfile = async () => {
-    await navigator.clipboard?.writeText(publicUrl);
-    setToast("Profile link copied");
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setToast("Profile link copied");
+    } catch {
+      setToast("Copy unavailable. Select your URL in Share.");
+    }
     setTimeout(() => setToast(""), 1800);
   };
 
@@ -941,101 +991,87 @@ function Dashboard({
   };
 
   return (
-    <main className="dashboard">
-      <div className="upgrade-bar">
-        <span className="spark-mark">✦</span>
-        <p>Grow your audience with a page that feels like you.</p>
-        <button>⚡ Upgrade</button>
-      </div>
-
-      <aside className="sidebar">
-        <div className="brand-lockup">
-          <span>N</span>
-          <div><strong>NEMU Link Bio</strong><small>Buatan Indonesia 🇮🇩</small></div>
-        </div>
-        <button className="account"><span>NF</span><strong>{name || "creator"}</strong><b>⌄</b></button>
-        <nav>
-          <p>MY PAGE</p>
-          {navItems.map(([label, icon]) => (
-            <button key={label} className={activeNav === label ? "active" : ""} onClick={() => setActiveNav(label)}>
-              <span>{icon}</span>{label}
-            </button>
-          ))}
-          <p>GROW</p>
-          {growItems.map(([item, icon]) => (
-            <button key={item} className={activeNav === item ? "active" : ""} onClick={() => setActiveNav(item)}>
-              <span>{icon}</span>{item}
-            </button>
+    <main className={`dashboard ${styles.workspace}`}>
+      <aside className="sidebar" inert={mobilePreview}>
+        <Link href="/" className={styles.brand}>
+          <span aria-hidden="true" /><strong>NEMU Link Bio</strong>
+        </Link>
+        <nav aria-label="Workspace">
+          {navGroups.map(({ title, items }) => (
+            <div key={title}>
+              <p>{title}</p>
+              {items.map(([label, Icon]) => (
+                <button key={label} className={activeNav === label ? "active" : ""} aria-current={activeNav === label ? "page" : undefined} onClick={() => selectSection(label)}>
+                  <Icon aria-hidden="true" />{label}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
-        <div className="setup-card">
-          <div className="setup-progress"><span>72%</span></div>
-          <strong>Your page is looking good</strong>
-          <p>One more touch can make it unforgettable.</p>
-          <button onClick={() => setActiveNav("Design")}>Finish setup</button>
-        </div>
-        <button className="reset-link" onClick={onReset}>↺ Restart onboarding</button>
-        <Link className="dashboard-logout" href="/auth/signout">⇥ Sign out</Link>
+        <footer className={styles.sidebarFooter}>
+          <button onClick={onReset}><FiRotateCcw aria-hidden="true" />Restart onboarding</button>
+          <Link href="/auth/signout"><FiLogOut aria-hidden="true" />Sign out</Link>
+        </footer>
       </aside>
 
-      <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
-        {[["Links", "⌁"], ["Design", "✦"], ["Share", "↗"], ["QR code", "▦"]].map(([item, icon]) => (
-          <button key={item} className={activeNav === item ? "active" : ""} onClick={() => { setActiveNav(item); setMobileMenuOpen(false); }}>
-            <span>{icon}</span><b>{item === "QR code" ? "QR" : item}</b>
+      <nav className="mobile-bottom-nav" aria-label="Mobile navigation" inert={mobilePreview}>
+        {mobileItems.map(([item, Icon]) => (
+          <button key={item} className={activeNav === item ? "active" : ""} aria-current={activeNav === item ? "page" : undefined} onClick={() => selectSection(item)}>
+            <Icon aria-hidden="true" /><b>{item}</b>
           </button>
         ))}
-        <button className={mobileMenuOpen ? "active" : ""} onClick={() => setMobileMenuOpen((open) => !open)} aria-expanded={mobileMenuOpen}>
-          <span>•••</span><b>More</b>
+        <button className={mobileMenuOpen || !mobileItems.some(([label]) => label === activeNav) ? "active" : ""} onClick={() => { toolsDialog.current?.showModal(); setMobileMenuOpen(true); }} aria-haspopup="dialog" aria-expanded={mobileMenuOpen} aria-controls="editor-tools">
+          <FiMoreHorizontal aria-hidden="true" /><b>More</b>
         </button>
       </nav>
 
-      {mobileMenuOpen && (
-        <div className="mobile-menu-backdrop" onClick={() => setMobileMenuOpen(false)}>
-          <section className="mobile-menu-sheet" onClick={(event) => event.stopPropagation()} aria-label="All tools">
-            <div><strong>All tools</strong><button onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">×</button></div>
-            <nav>
-              {[...navItems, ...growItems].map(([item, icon]) => (
-                <button key={item} className={activeNav === item ? "active" : ""} onClick={() => { setActiveNav(item); setMobileMenuOpen(false); }}>
-                  <span>{icon}</span><b>{item}</b>
-                </button>
-              ))}
-            </nav>
-            <button className="mobile-reset" onClick={() => { setMobileMenuOpen(false); onReset(); }}>↺ Restart onboarding</button>
-            <Link className="mobile-signout" href="/auth/signout">⇥ Sign out</Link>
-          </section>
-        </div>
-      )}
+      <dialog id="editor-tools" ref={toolsDialog} className={styles.toolsDialog} onClose={() => setMobileMenuOpen(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} aria-labelledby="editor-tools-title">
+        <section className="mobile-menu-sheet">
+          <div><strong id="editor-tools-title">All tools</strong><button onClick={() => toolsDialog.current?.close()} aria-label="Close menu"><FiX /></button></div>
+          <nav>
+            {[...navItems, ...growItems].map(([item, Icon]) => (
+              <button key={item} className={activeNav === item ? "active" : ""} aria-current={activeNav === item ? "page" : undefined} onClick={() => selectSection(item)}>
+                <Icon aria-hidden="true" /><b>{item}</b>
+              </button>
+            ))}
+          </nav>
+          <button className="mobile-reset" onClick={() => { toolsDialog.current?.close(); onReset(); }}>Restart onboarding</button>
+          <Link className="mobile-signout" href="/auth/signout">Sign out</Link>
+        </section>
+      </dialog>
 
-      <section className="editor">
+      <section className="editor" ref={editorPanel} inert={mobilePreview}>
         <header className="editor-header">
-          <div>
-            <span className="editor-eyebrow">MY LINK-IN-BIO</span>
-            <h1>{activeNav}</h1>
-          </div>
+          <h1>{activeNav}</h1>
           <div className="header-actions">
-            <button onClick={() => setMobilePreview(true)}><span>◉</span><b>Preview</b></button>
-            <button onClick={copyProfile}><span>↗</span><b>Share</b></button>
+            <button className={styles.previewTrigger} ref={previewTrigger} aria-label="Preview page" aria-expanded={mobilePreview} aria-controls="page-preview" onClick={() => setMobilePreview(true)}><FiEye aria-hidden="true" /><b>Preview</b></button>
+            <button onClick={copyProfile} aria-label="Copy profile link"><FiCopy aria-hidden="true" /><b>Copy link</b></button>
           </div>
         </header>
 
         {activeNav === "Links" && (
           <div className="links-editor">
-            <section className="profile-summary">
-              <button className={`profile-thumb ${profileImage ? "has-image" : ""}`} style={profileImage ? { backgroundImage: `url(${profileImage})` } : undefined} onClick={() => profileFileRef.current?.click()} aria-label="Change profile image">{profileImage ? "" : "NF"}<i>+</i></button>
-              <input ref={profileFileRef} className="visually-hidden" type="file" accept="image/*" onChange={(event) => uploadProfileImage(event.target.files?.[0])} />
+            <section className={styles.profile} aria-label="Edit profile">
+              <button className={`profile-thumb ${profileImage ? "has-image" : ""}`} style={profileImage ? { backgroundImage: `url(${profileImage})` } : undefined} onClick={() => profileFileRef.current?.click()} aria-label="Change profile image">{profileImage ? "" : (name || "N").slice(0, 2).toUpperCase()}<i><FiEdit3 aria-hidden="true" /></i></button>
+              <input ref={profileFileRef} hidden type="file" accept="image/*" onChange={(event) => uploadProfileImage(event.target.files?.[0])} />
               <div>
-                <input value={name} onChange={(e) => setName(e.target.value.replace(/\s/g, "").slice(0, 24))} aria-label="Profile username" />
-                <input value={bio} onChange={(e) => setBio(e.target.value.slice(0, 160))} placeholder="Add a short bio" aria-label="Profile bio" />
-                <div className="profile-networks">{links.slice(0, 5).map((link) => <span key={link.id} style={{ color: link.color }}><SocialIcon name={link.icon} title={link.title} /></span>)}<button>+</button></div>
+                <label>Profile name<input value={name} onChange={(e) => setName(e.target.value.replace(/\s/g, "").slice(0, 24))} aria-label="Profile username" /></label>
+                <label>Bio<input value={bio} onChange={(e) => setBio(e.target.value.slice(0, 160))} placeholder="Add a short bio" aria-label="Profile bio" /></label>
               </div>
             </section>
 
-            <button className="add-button" onClick={addLink}><span>＋</span> Add link</button>
-            <div className="collection-row"><button onClick={addCollection}>▱ Add collection</button><button onClick={() => setShowArchive((open) => !open)}>▰ View archive ({archive.length})　›</button></div>
+            <div className={styles.linkHeading}>
+              <h2>Your links</h2>
+              <button className={styles.addLink} onClick={addLink}><FiPlus aria-hidden="true" />Add link</button>
+            </div>
+            <div className={styles.secondaryActions}>
+              <button onClick={addCollection}><FiFolderPlus aria-hidden="true" />Add collection</button>
+              <button onClick={() => setShowArchive((open) => !open)} aria-expanded={showArchive}><FiArchive aria-hidden="true" />Archive ({archive.length})</button>
+            </div>
 
             {showArchive && (
               <div className="archive-panel">
-                <div className="section-title"><div><h2>Archive</h2><p>Restore a link or remove it permanently.</p></div><button onClick={() => setShowArchive(false)}>×</button></div>
+                <div className="section-title"><div><h2>Archive</h2><p>Restore a link or remove it permanently.</p></div><button onClick={() => setShowArchive(false)} aria-label="Close archive"><FiX /></button></div>
                 {archive.length === 0 ? <p className="archive-empty">Nothing archived yet.</p> : archive.map((item) => (
                   <div className="archive-item" key={item.id}>
                     <SocialIcon name={item.icon} title={item.title} /><strong>{item.title}</strong>
@@ -1047,34 +1083,34 @@ function Dashboard({
             )}
 
             <div className="link-stack">
+              {links.length === 0 && <p className={styles.emptyLinks}>Add your first link to display it on your page.</p>}
               {links.map((link, index) => (
-                <article className="link-card" key={link.id}>
-                  <div className="drag-controls">
-                    <button onClick={() => moveLink(index, -1)} disabled={index === 0} aria-label={`Move ${link.title} up`}>↑</button>
-                    <button onClick={() => moveLink(index, 1)} disabled={index === links.length - 1} aria-label={`Move ${link.title} down`}>↓</button>
-                  </div>
-                  <div className="link-card-main">
-                    <label>
-                      <span>Title</span>
-                      <input value={link.title} onChange={(e) => updateLink(link.id, { title: e.target.value })} />
-                    </label>
-                    {link.kind !== "collection" && <label>
-                      <span>URL</span>
-                      <input value={link.url} onChange={(e) => updateLink(link.id, { url: e.target.value })} />
-                    </label>}
-                    <div className="link-tools">
-                      <span style={{ color: link.color }}><SocialIcon name={link.icon} title={link.title} /></span>
-                      <button title="Add thumbnail">▧</button>
-                      <button title="Feature link">☆</button>
-                      <button title="Schedule">◷</button>
-                      <span className="clicks">▥ {nemuLinkClickCounts.get(String(link.id)) ?? 0} clicks</span>
+                <article className={styles.linkCard} key={link.id}>
+                  <div className={styles.cardFields}>
+                    <span className={styles.platform} style={{ color: link.color }}>{link.kind === "collection" ? <FiFolderPlus aria-hidden="true" /> : <SocialIcon name={link.icon} title={link.title} />}</span>
+                    <div>
+                      <label>Title<input ref={(input) => {
+                        if (input && newTitleToFocus.current === link.id) {
+                          newTitleToFocus.current = null;
+                          input.focus();
+                          input.select();
+                        }
+                      }} value={link.title} onChange={(e) => updateLink(link.id, { title: e.target.value })} /></label>
+                      {link.kind !== "collection" && <label>URL<input inputMode="url" value={link.url} onChange={(e) => updateLink(link.id, { url: e.target.value })} /></label>}
                     </div>
                   </div>
-                  <div className="link-card-actions">
-                    <button className={`switch ${link.enabled ? "on" : ""}`} onClick={() => updateLink(link.id, { enabled: !link.enabled })} aria-label={`${link.enabled ? "Disable" : "Enable"} ${link.title}`}><i /></button>
-                    <button onClick={() => archiveLink(link.id)} aria-label={`Archive ${link.title}`}>⌫</button>
+                  <div className={styles.cardTools}>
+                    <button className={styles.visibility} role="switch" aria-checked={link.enabled} aria-label={`Show ${link.title} on profile`} onClick={() => updateLink(link.id, { enabled: !link.enabled })}>
+                      <i aria-hidden="true" />{link.enabled ? "Visible" : "Hidden"}
+                    </button>
+                    {trafficUpdatedAt && link.kind !== "collection" && <span className={styles.clickCount}>{nemuLinkClickCounts.get(String(link.id)) ?? 0} clicks</span>}
+                    <div>
+                      {link.kind !== "collection" && <button aria-pressed={Boolean(link.featured)} aria-label={`Feature ${link.title}`} title="Feature link" onClick={() => updateLink(link.id, { featured: !link.featured })}><FiStar /></button>}
+                      <button onClick={() => moveLink(index, -1)} disabled={index === 0} aria-label={`Move ${link.title} up`} title="Move up"><FiArrowUp /></button>
+                      <button onClick={() => moveLink(index, 1)} disabled={index === links.length - 1} aria-label={`Move ${link.title} down`} title="Move down"><FiArrowDown /></button>
+                      <button onClick={() => archiveLink(link.id)} aria-label={`Archive ${link.title}`} title="Archive"><FiArchive /></button>
+                    </div>
                   </div>
-                  <span className="link-number">{String(index + 1).padStart(2, "0")}</span>
                 </article>
               ))}
             </div>
@@ -1407,7 +1443,7 @@ function Dashboard({
                     <label><span>URL</span><input value={product.url} onChange={(event) => setProducts((items) => items.map((item) => item.id === product.id ? { ...item, url: event.target.value } : item))} /></label>
                   </div>
                   <div className="product-actions">
-                    <button className={`switch ${product.enabled ? "on" : ""}`} onClick={() => setProducts((items) => items.map((item) => item.id === product.id ? { ...item, enabled: !item.enabled } : item))}><i /></button>
+                    <button role="switch" aria-checked={product.enabled} aria-label={`Show ${product.title} on profile`} className={`switch ${product.enabled ? "on" : ""}`} onClick={() => setProducts((items) => items.map((item) => item.id === product.id ? { ...item, enabled: !item.enabled } : item))}><i /></button>
                     <button onClick={() => setProducts((items) => items.filter((item) => item.id !== product.id))}>Delete</button>
                   </div>
                 </article>
@@ -1499,7 +1535,7 @@ function Dashboard({
           <div className="utility-panel email-panel">
             <div className="feature-toggle">
               <div><span>✉</span><div><h2>Email capture</h2><p>Let visitors join your list directly from your page.</p></div></div>
-              <button className={`switch ${emailCapture ? "on" : ""}`} onClick={() => setEmailCapture((value) => !value)}><i /></button>
+              <button role="switch" aria-checked={emailCapture} aria-label="Capture emails" className={`switch ${emailCapture ? "on" : ""}`} onClick={() => setEmailCapture((value) => !value)}><i /></button>
             </div>
             <div className="email-preview-card">
               <span>LIVE PREVIEW</span><h3>Stay in the loop</h3><p>Updates, new projects, and useful things—straight to your inbox.</p>
@@ -1526,14 +1562,15 @@ function Dashboard({
         )}
       </section>
 
-      <aside className={`preview-pane ${mobilePreview ? "open" : ""}`}>
+      <aside aria-label="Page preview" role={mobilePreview ? "dialog" : undefined} aria-modal={mobilePreview || undefined} id="page-preview" className={`preview-pane ${mobilePreview ? "open" : ""}`}>
         <div className="preview-pane-top">
-          <button onClick={copyProfile}>linkbio.nemu-ai.com/{PUBLIC_PROFILE_ID}　↗</button>
-          <button className="close-preview" onClick={() => setMobilePreview(false)}>×</button>
+          <strong>Page preview</strong>
+          <a href={publicUrl} target="_blank" rel="noreferrer" aria-label="Open public profile" title="Open public profile"><FiArrowUpRight /></a>
+          <button className="close-preview" ref={closePreviewButton} onClick={() => { setMobilePreview(false); requestAnimationFrame(() => previewTrigger.current?.focus()); }} aria-label="Close preview"><FiX /></button>
         </div>
-        <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} profileImage={profileImage} products={products} emailCapture={emailCapture} onLinkClick={recordClick} onSubscribe={addSubscriber} /></div>
+        <div className="phone-shell"><PublicPreview theme={theme} name={name} bio={bio} links={links} profileImage={profileImage} products={products} emailCapture={emailCapture} onLinkClick={recordClick} onSubscribe={addSubscriber} onCopyLink={copyProfile} /></div>
       </aside>
-      {toast && <div className="toast">✓ {toast}</div>}
+      {toast && <div className="toast" role="status">{toast}</div>}
     </main>
   );
 }
