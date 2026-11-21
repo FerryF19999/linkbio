@@ -12,7 +12,7 @@
 .frame {
   display: flex;
   flex-direction: column;
-  max-width: 1012px;
+  max-width: 600px;
   min-height: 100svh;
   margin-inline: auto;
 }
@@ -68,22 +68,19 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, .8fr) minmax(0, 1.45fr);
-  gap: clamp(40px, 6vw, 88px);
-  align-items: start;
-  padding-block: clamp(40px, 5vw, 76px) 56px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  padding-block: 32px 48px;
 }
 .identity {
-  container-type: inline-size;
-  position: sticky;
-  top: 32px;
   display: grid;
-  justify-items: start;
+  justify-items: center;
+  text-align: center;
 }
 .avatar {
   display: grid;
   place-items: center;
-  width: 88px;
+  width: 82px;
   aspect-ratio: 1;
   border-radius: 50%;
   background: #fff center / cover no-repeat;
@@ -98,16 +95,16 @@
 }
 .identity h1 {
   max-width: 100%;
-  margin: 22px 0 0;
-  font-size: clamp(25px, 11.5cqi, 44px);
+  margin: 16px 0 0;
+  font-size: clamp(25px, 4.5vw, 32px);
   font-weight: 650;
   letter-spacing: -.04em;
   line-height: 1.06;
   overflow-wrap: anywhere;
 }
 .bio {
-  max-width: 48ch;
-  margin: 14px 0 0;
+  max-width: min(100%, 540px);
+  margin: 10px 0 0;
   font-size: 16px;
   line-height: 1.6;
   overflow-wrap: anywhere;
@@ -117,8 +114,9 @@
 .socials {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 5px;
-  margin-top: 23px;
+  margin-top: 14px;
 }
 .socials a {
   width: 44px;
@@ -128,7 +126,7 @@
 .socials svg { width: 18px; height: 18px; }
 
 .content { min-width: 0; }
-.links { display: grid; gap: 8px; }
+.links { display: grid; gap: 12px; }
 .collection {
   margin: 24px 0 2px;
   font-size: 18px;
@@ -140,11 +138,11 @@
 .collection:first-child { margin-top: 0; }
 .row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 20px;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 14px;
   min-height: 74px;
-  padding: 10px 18px 10px 12px;
+  padding: 10px 12px;
   color: var(--link-text);
   background: var(--link-fill);
   border: 1px solid var(--link-border);
@@ -168,12 +166,12 @@
 .media[data-image] { background-color: #fff; }
 .shell[data-theme="classic"] .media { background-color: #f2effc; }
 .row[data-featured] .media[data-image] { background-color: #fff; }
-.label { display: grid; gap: 3px; justify-items: start; overflow-wrap: anywhere; }
+.label { display: grid; gap: 3px; justify-items: center; text-align: center; overflow-wrap: anywhere; }
 .label strong { font-size: 15px; font-weight: 600; line-height: 1.32; }
 .label small { font-size: 12px; line-height: 1.35; }
 .shell[data-theme="classic"] .label small:not(.badge) { color: #686372; }
 .label .badge { font-size: 11px; font-weight: 650; color: #f2ffc0; }
-.arrow { width: 18px; height: 18px; transition: transform .18s ease-out; }
+.arrow { justify-self: end; width: 18px; height: 18px; transition: transform .18s ease-out; }
 
 .email {
   display: grid;
@@ -199,6 +197,7 @@
   padding-block: 18px max(24px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   font-size: 12px;
+  text-align: center;
 }
 
 @media (hover: hover) {
@@ -209,29 +208,17 @@
 }
 
 @media (max-width: 760px) {
-  .frame { max-width: 560px; }
+  .shell { padding-inline: max(13px, env(safe-area-inset-left)) max(13px, env(safe-area-inset-right)); }
   .masthead { padding-block: max(9px, env(safe-area-inset-top)) 9px; }
-  .layout { grid-template-columns: minmax(0, 1fr); gap: 26px; padding-block: 28px 38px; }
-  .identity {
-    position: static;
-    display: grid;
-    grid-template-columns: 58px minmax(0, 1fr);
-    align-items: center;
-    column-gap: 14px;
-  }
-  .avatar { width: 58px; font-size: 22px; }
-  .identity h1 { margin: 0; font-size: clamp(25px, 6.5vw, 34px); }
-  .bio, .socials { grid-column: 1 / -1; }
-  .bio { margin-top: 14px; font-size: 15px; }
-  .socials { margin-top: 14px; }
-  .row { min-height: 68px; gap: 12px; padding-inline: 10px 14px; }
+  .layout { gap: 20px; padding-block: 24px 38px; }
+  .bio { font-size: 15px; }
+  .row { grid-template-columns: 36px minmax(0, 1fr) 36px; min-height: 68px; gap: 8px; padding-inline: 10px; }
+  .media { width: 36px; }
 }
 
 @media (max-width: 350px) {
   .socials { gap: 3px; }
   .brand { font-size: 14px; }
-  .row { grid-template-columns: 36px minmax(0, 1fr) 18px; gap: 10px; }
-  .media { width: 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
