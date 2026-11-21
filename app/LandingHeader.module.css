@@ -26,7 +26,7 @@
 .brand strong { font-size: 24px; font-weight: 790; letter-spacing: -.04em; }
 .brand span { margin-left: 1px; font-size: 14px; font-weight: 550; }
 .desktopNav { gap: clamp(3px, .9vw, 15px); }
-.desktopNav a, .login, .signup, .mobileNav a {
+.desktopNav a, .signup, .mobileNav a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -38,14 +38,13 @@
   line-height: 1.2;
   white-space: nowrap;
 }
-.desktopNav a, .login, .mobileNav a { color: #322b3d; }
+.desktopNav a, .mobileNav a { color: #322b3d; }
 .actions { margin-left: auto; gap: 6px; }
-.login { padding-inline: 16px; }
 .signup { min-height: 50px; padding-inline: 24px; background: #301267; color: white; font-weight: 660; }
 .toggle, .mobileNav { display: none; }
 
 @media (hover: hover) {
-  .desktopNav a:hover, .login:hover, .toggle:hover, .mobileNav a:hover { background: #f4effa; }
+  .desktopNav a:hover, .toggle:hover, .mobileNav a:hover { background: #f4effa; }
   .signup:hover { background: #492187; }
 }
 
@@ -58,8 +57,7 @@
   .brand span { font-size: 12px; }
   .desktopNav { display: none; }
   .actions { gap: 2px; }
-  .login, .signup { min-height: 44px; font-size: 13px; padding-inline: 12px; }
-  .signup { padding-inline: 17px; }
+  .signup { min-height: 44px; font-size: 13px; padding-inline: 17px; }
   .toggle {
     display: grid;
     place-items: center;

@@ -55,7 +55,6 @@ export default function LandingHeader({ isAdmin }: { isAdmin: boolean }) {
           {sections.map(({ href, label }) => <a href={href} key={href}>{label}</a>)}
         </nav>
         <div className={styles.actions}>
-          {!isAdmin && <Link className={styles.login} href="/login">Masuk</Link>}
           <Link className={styles.signup} href={isAdmin ? "/app" : "#waitlist"} onClick={() => setMenuOpen(false)}>
             {isAdmin ? "Dashboard" : "Daftar"}
           </Link>

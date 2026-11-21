@@ -116,7 +116,6 @@ export default async function LandingPage() {
       <footer className={styles.footer}>
         <Link href="/" aria-label="NEMU Link Bio, beranda"><Image src="/favicon.svg" alt="" width={28} height={28} /><strong>NEMU Link Bio</strong></Link>
         <span>© 2026 NEMU AI</span>
-        <Link href={isAdmin ? "/app" : "/login"}>{isAdmin ? "Dashboard" : "Masuk admin"} <FiArrowUpRight aria-hidden="true" /></Link>
       </footer>
     </div>
   );

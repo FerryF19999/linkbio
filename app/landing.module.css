@@ -146,7 +146,6 @@
 .footer a { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; }
 .footer strong { font-weight: 750; letter-spacing: -.035em; }
 .footer > span { margin-left: auto; font-size: 13px; color: #615a68; }
-.footer > a:last-child { font-size: 14px; }
 
 @media (max-width: 900px) {
   .heroInner, .split { gap: 30px; }
