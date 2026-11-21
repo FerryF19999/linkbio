@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FiArrowRight, FiEye, FiEyeOff } from "react-icons/fi";
 import { resetLoginSession, signIn } from "./actions";
 
 export default function LoginForm({ email, sessionExpired, initialError, sessionReset }: {
@@ -24,27 +24,26 @@ export default function LoginForm({ email, sessionExpired, initialError, session
     </div>}
     <form action={action} className="admin-login-form" aria-busy={pending}>
       <div className="admin-account-field">
-        <label htmlFor="admin-email">Admin email</label>
+        <label htmlFor="admin-email">Email admin</label>
         <input id="admin-email" name="email" type="email" value={email} readOnly autoComplete="username" />
       </div>
       <div className="admin-account-field">
-        <label htmlFor="admin-password">Password</label>
+        <label htmlFor="admin-password">Kata sandi</label>
         <div className="admin-password-control">
           <input id="admin-password" name="password" type={showPassword ? "text" : "password"}
-            minLength={8} autoComplete="current-password" placeholder="Masukkan password admin" required autoFocus
+            minLength={8} autoComplete="current-password" placeholder="Masukkan kata sandi" required
             aria-describedby={capsLock ? "caps-lock-warning" : undefined}
             onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))}
             onBlur={() => setCapsLock(false)} />
           <button type="button" className="admin-password-toggle" onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? "Sembunyikan password" : "Lihat password"} aria-pressed={showPassword}>
+            aria-label={showPassword ? "Sembunyikan kata sandi" : "Lihat kata sandi"} aria-pressed={showPassword}>
             {showPassword ? <FiEyeOff aria-hidden="true" /> : <FiEye aria-hidden="true" />}
           </button>
         </div>
         {capsLock && <small id="caps-lock-warning">Caps Lock aktif.</small>}
       </div>
       <button type="submit" disabled={pending}>
-        <span className="chatgpt-mark">N</span>
-        <b>{pending ? "Sedang masuk…" : "Log in to dashboard"}</b><span aria-hidden="true">→</span>
+        <b>{pending ? "Sedang masuk…" : "Masuk ke dashboard"}</b><FiArrowRight aria-hidden="true" />
       </button>
     </form>
     <form action={resetLoginSession} className="login-reset-form">

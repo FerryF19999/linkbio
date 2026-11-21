@@ -1,0 +1,240 @@
+.shell {
+  --line: color-mix(in srgb, currentColor 16%, transparent);
+  min-height: 100svh;
+  padding-inline: max(clamp(18px, 5vw, 64px), env(safe-area-inset-left)) max(clamp(18px, 5vw, 64px), env(safe-area-inset-right));
+}
+
+.shell :is(a, button, input):focus-visible {
+  outline: 3px solid var(--profile-ink);
+  outline-offset: 3px;
+}
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  max-width: 1012px;
+  min-height: 100svh;
+  margin-inline: auto;
+}
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: max(16px, env(safe-area-inset-top)) 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand, .share, .socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand { gap: 9px; font-size: 16px; font-weight: 680; letter-spacing: -.035em; }
+.mark {
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  mask: url("/favicon.svg") center / contain no-repeat;
+}
+.shell[data-theme="classic"] .mark { background: #704bfd; }
+
+.share {
+  gap: 8px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.share svg { width: 16px; height: 16px; }
+.manualShare { display: grid; gap: 6px; align-self: end; width: min(100%, 360px); margin-top: 16px; font-size: 14px; }
+.manualShare input, .email input {
+  min-width: 0;
+  border: 1px solid currentColor;
+  border-radius: 9px;
+  background: #fff;
+  color: #1b1720;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.45fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: start;
+  padding-block: clamp(40px, 5vw, 76px) 56px;
+}
+.identity {
+  container-type: inline-size;
+  position: sticky;
+  top: 32px;
+  display: grid;
+  justify-items: start;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff center / cover no-repeat;
+  color: #5036b7;
+  font-weight: 720;
+  font-size: 26px;
+}
+.shell[data-theme="classic"] .avatar {
+  background-size: 68%;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+}
+.identity h1 {
+  max-width: 100%;
+  margin: 22px 0 0;
+  font-size: clamp(25px, 11.5cqi, 44px);
+  font-weight: 650;
+  letter-spacing: -.04em;
+  line-height: 1.06;
+  overflow-wrap: anywhere;
+}
+.bio {
+  max-width: 48ch;
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.shell[data-theme="classic"] .bio { color: #524e5b; }
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 23px;
+}
+.socials a {
+  width: 44px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.socials svg { width: 18px; height: 18px; }
+
+.content { min-width: 0; }
+.links { display: grid; gap: 8px; }
+.collection {
+  margin: 24px 0 2px;
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+.collection:first-child { margin-top: 0; }
+.row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 14px;
+  min-height: 74px;
+  padding: 10px 18px 10px 12px;
+  color: var(--link-text);
+  background: var(--link-fill);
+  border: 1px solid var(--link-border);
+  border-radius: 14px;
+  text-decoration: none;
+}
+.row[data-featured] {
+  background: #6342d8;
+  color: #fff;
+  border-color: transparent;
+}
+.media {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  aspect-ratio: 1;
+  border-radius: 11px;
+  background: color-mix(in srgb, currentColor 6%, transparent) center / 70% no-repeat;
+}
+.media svg { width: 20px; height: 20px; }
+.media[data-image] { background-color: #fff; }
+.shell[data-theme="classic"] .media { background-color: #f2effc; }
+.row[data-featured] .media[data-image] { background-color: #fff; }
+.label { display: grid; gap: 3px; justify-items: start; overflow-wrap: anywhere; }
+.label strong { font-size: 15px; font-weight: 600; line-height: 1.32; }
+.label small { font-size: 12px; line-height: 1.35; }
+.shell[data-theme="classic"] .label small:not(.badge) { color: #686372; }
+.label .badge { font-size: 11px; font-weight: 650; color: #f2ffc0; }
+.arrow { width: 18px; height: 18px; transition: transform .18s ease-out; }
+
+.email {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.email > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.email button {
+  min-height: 44px;
+  padding-inline: 20px;
+  border: 0;
+  border-radius: 9px;
+  background: #261d39;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.footer {
+  margin-top: auto;
+  padding-block: 18px max(24px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+
+@media (hover: hover) {
+  .brand:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .share:hover, .socials a:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+  .row:hover { border-color: currentColor; }
+  .row:hover .arrow { transform: translate(2px, -2px); }
+}
+
+@media (max-width: 760px) {
+  .frame { max-width: 560px; }
+  .masthead { padding-block: max(9px, env(safe-area-inset-top)) 9px; }
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 26px; padding-block: 28px 38px; }
+  .identity {
+    position: static;
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 14px;
+  }
+  .avatar { width: 58px; font-size: 22px; }
+  .identity h1 { margin: 0; font-size: clamp(25px, 6.5vw, 34px); }
+  .bio, .socials { grid-column: 1 / -1; }
+  .bio { margin-top: 14px; font-size: 15px; }
+  .socials { margin-top: 14px; }
+  .row { min-height: 68px; gap: 12px; padding-inline: 10px 14px; }
+}
+
+@media (max-width: 350px) {
+  .socials { gap: 3px; }
+  .brand { font-size: 14px; }
+  .row { grid-template-columns: 36px minmax(0, 1fr) 18px; gap: 10px; }
+  .media { width: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow { transition: none; }
+  .row:hover .arrow { transform: none; }
+}

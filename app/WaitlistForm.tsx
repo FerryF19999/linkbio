@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { FiArrowRight } from "react-icons/fi";
+import styles from "./landing.module.css";
 
 type FormState =
   | { type: "idle"; message: "" }
@@ -25,51 +27,40 @@ export default function WaitlistForm() {
           email: formData.get("email"),
         }),
       });
-      const result = (await response.json()) as {
-        error?: string;
-        alreadyJoined?: boolean;
-      };
-      if (!response.ok) throw new Error(result.error || "Unable to join.");
+      if (!response.ok) throw new Error();
+      const result = (await response.json()) as { alreadyJoined?: boolean };
 
       form.reset();
       setState({
         type: "success",
         message: result.alreadyJoined
-          ? "You are already on the waitlist — we saved your spot."
-          : "You are in! We will email you when NEMU opens.",
+          ? "Email ini sudah terdaftar untuk akses awal."
+          : "Kamu sudah terdaftar. Tunggu kabar dari NEMU di emailmu.",
       });
-    } catch (error) {
+    } catch {
       setState({
         type: "error",
-        message: error instanceof Error ? error.message : "Something went wrong. Try again.",
+        message: "Pendaftaran belum terkirim. Coba lagi sebentar ya.",
       });
     }
   }
 
   return (
-    <div className="landing-waitlist" id="waitlist">
-      <form onSubmit={submitWaitlist}>
+    <div className={styles.waitlist}>
+      <form onSubmit={submitWaitlist} aria-busy={state.type === "loading"}>
         <label>
-          <span>Your name</span>
-          <input name="name" required minLength={2} maxLength={80} autoComplete="name" placeholder="Nemu Creator" />
+          <span>Nama</span>
+          <input name="name" required minLength={2} maxLength={80} autoComplete="name" placeholder="Nama kamu" />
         </label>
         <label>
-          <span>Email address</span>
-          <input name="email" required type="email" maxLength={254} autoComplete="email" placeholder="you@email.com" />
+          <span>Email</span>
+          <input name="email" required type="email" maxLength={254} autoComplete="email" placeholder="nama@email.com" />
         </label>
-        <button type="submit" disabled={state.type === "loading"}>
-          {state.type === "loading" ? "Joining..." : "Join the waitlist"} <span aria-hidden="true">→</span>
+        <button type="submit" className={styles.lightAction} disabled={state.type === "loading"}>
+          {state.type === "loading" ? "Mengirim…" : "Daftarkan saya"} <FiArrowRight aria-hidden="true" />
         </button>
       </form>
-      <div className="landing-waitlist-meta">
-        <span>✦ Early access</span>
-        <span>No spam. Unsubscribe anytime.</span>
-      </div>
-      {state.message && (
-        <p className={`waitlist-message ${state.type}`} role="status">
-          {state.message}
-        </p>
-      )}
+      <p className={styles.message} data-state={state.type} role="status">{state.message}</p>
     </div>
   );
 }

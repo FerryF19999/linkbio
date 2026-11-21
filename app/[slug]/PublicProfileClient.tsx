@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { IconType } from "react-icons";
 import { FaLinkedin } from "react-icons/fa6";
-import { FiExternalLink, FiGlobe, FiMail, FiShare2 } from "react-icons/fi";
+import { FiArrowUpRight, FiCheck, FiExternalLink, FiGlobe, FiMail, FiShare2, FiShoppingBag } from "react-icons/fi";
+import { destinationLabel } from "@/lib/profile-links";
+import styles from "./PublicProfile.module.css";
 import {
   SiAppstore,
   SiApplemusic,
@@ -58,15 +61,15 @@ const themeStyles: Record<string, { bg: string; text: string; button: string; bu
   midnight: { bg: "#0a0a0a", text: "#ffffff", button: "#202020", buttonText: "#ffffff" },
   sunset: { bg: "linear-gradient(160deg,#bdeef1 0%,#e8d7ef 45%,#f06448 100%)", text: "#251b29", button: "#ffffff", buttonText: "#251b29" },
   grid: { bg: "#5b3034", text: "#fff6de", button: "#fff2d0", buttonText: "#5b3034" },
-  cream: { bg: "#fff7e9", text: "#e12e26", button: "#fff7e9", buttonText: "#e12e26", outline: true },
+  cream: { bg: "#fff7e9", text: "#c22b24", button: "#fff7e9", buttonText: "#c22b24", outline: true },
   forest: { bg: "#07352d", text: "#e9ffe6", button: "#e4ffdc", buttonText: "#07352d" },
   cloud: { bg: "#eff1f5", text: "#171717", button: "#ffffff", buttonText: "#171717" },
-  earth: { bg: "#6f655d", text: "#fffdf6", button: "#9a8b80", buttonText: "#ffffff" },
+  earth: { bg: "#6f655d", text: "#fffdf6", button: "#9a8b80", buttonText: "#211a16" },
   berry: { bg: "linear-gradient(180deg,#5b002a 0%,#7d3565 100%)", text: "#ffffff", button: "transparent", buttonText: "#ffffff", outline: true },
   violet: { bg: "#9252c9", text: "#ffffff", button: "#ead6ff", buttonText: "#4b1a70" },
   mist: { bg: "#c7dbe1", text: "#183038", button: "#dcecef", buttonText: "#183038" },
   paper: { bg: "#eeeee4", text: "#171717", button: "#ffffff", buttonText: "#171717", outline: true },
-  aurora: { bg: "radial-gradient(circle at 75% 22%,#ffac38 0%,#ec5d49 30%,#46d1a0 67%,#134754 100%)", text: "#ffffff", button: "#ffffff", buttonText: "#171717" },
+  aurora: { bg: "linear-gradient(#17122380, #17122380), radial-gradient(circle at 75% 22%,#ffac38 0%,#ec5d49 30%,#46d1a0 67%,#134754 100%)", text: "#ffffff", button: "#ffffff", buttonText: "#171717" },
 };
 
 const brandIcons: Record<string, IconType> = {
@@ -180,7 +183,26 @@ export default function PublicProfileClient({
 }) {
   const profile = initialProfile;
   const [joined, setJoined] = useState(false);
+  const [shareState, setShareState] = useState<"idle" | "copied" | "manual">("idle");
   const theme = themeStyles[profile.theme] ?? themeStyles.sunset;
+  const enabledLinks = profile.links.filter((link) => link.enabled);
+  const socials = enabledLinks.filter((link) => link.kind !== "collection" && socialIcons.has(link.icon)).slice(0, 6);
+  const products = (profile.products ?? []).filter((product) => product.enabled);
+  const name = profile.name || slug;
+  const themeVariables = {
+    background: theme.bg,
+    color: theme.text,
+    "--profile-ink": theme.text,
+    "--link-fill": theme.button,
+    "--link-text": theme.buttonText,
+    "--link-border": theme.outline ? theme.text : "color-mix(in srgb, currentColor 13%, transparent)",
+  } as CSSProperties;
+
+  useEffect(() => {
+    if (shareState !== "copied") return;
+    const timeout = window.setTimeout(() => setShareState("idle"), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [shareState]);
 
   useEffect(() => {
     if (shouldSkipAnalytics()) return;
@@ -240,63 +262,109 @@ export default function PublicProfileClient({
   };
 
   const share = async () => {
+    const url = window.location.href;
     if (navigator.share) {
-      await navigator.share({ title: `@${profile.name}`, url: window.location.href });
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
+      try {
+        await navigator.share({ title: `@${name}`, url });
+        setShareState("idle");
+        return;
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareState("copied");
+    } catch {
+      setShareState("manual");
     }
   };
 
   return (
-    <main className="standalone-profile-shell" data-theme={profile.theme} style={{ background: theme.bg, color: theme.text }}>
-      <button className="standalone-share" onClick={share} aria-label="Share this profile"><FiShare2 /></button>
-      <div className={`standalone-avatar ${profile.profileImage ? "has-image" : ""}`} style={profile.profileImage ? { backgroundImage: `url(${profile.profileImage})` } : undefined}>
-        {profile.profileImage ? "" : (profile.name || "NF").slice(0, 2).toUpperCase()}
-      </div>
-      <h1>@{profile.name || slug}</h1>
-      <p className="standalone-bio">{profile.bio || "Your story, your links, all in one place."}</p>
-      <div className="standalone-socials">
-        {profile.links.filter((link) => link.enabled && link.kind !== "collection" && socialIcons.has(link.icon)).slice(0, 6).map((link) => (
-          <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" aria-label={link.title} onClick={() => trackClick(link, "link")}>
-            <BrandIcon name={link.icon} />
-          </a>
-        ))}
-      </div>
-      <section className="standalone-links">
-        {profile.links.filter((link) => link.enabled).map((link) => link.kind === "collection" ? (
-          <h2 key={link.id}>{link.title}</h2>
-        ) : (
-          <a
-            key={link.id}
-            className={link.featured ? "is-featured" : undefined}
-            href={link.url || "#"}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => trackClick(link, "link")}
-            style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}
-          >
-            <span
-              className={`standalone-link-media ${link.image ? "has-image" : ""}`}
-              style={link.image ? { backgroundImage: `url(${link.image})` } : undefined}
+    <main className={styles.shell} data-theme={profile.theme} style={themeVariables}>
+      <div className={styles.frame}>
+        <header className={styles.masthead}>
+          <Link className={styles.brand} href="/">
+            <span aria-hidden="true" className={styles.mark} /> NEMU Link Bio
+          </Link>
+          <button className={styles.share} type="button" onClick={share}>
+            {shareState === "copied" ? <FiCheck aria-hidden="true" /> : <FiShare2 aria-hidden="true" />}
+            <span aria-live="polite">{shareState === "copied" ? "Tersalin" : "Bagikan"}</span>
+          </button>
+        </header>
+        {shareState === "manual" && (
+          <label className={styles.manualShare}>
+            Salin alamat profil ini
+            <input type="url" readOnly value={window.location.href} onFocus={(event) => event.target.select()} />
+          </label>
+        )}
+        <div className={styles.layout}>
+          <section aria-labelledby="profile-name" className={styles.identity}>
+            <div
+              aria-hidden="true"
+              className={styles.avatar}
+              style={profile.profileImage ? { backgroundImage: `url("${profile.profileImage}")` } : undefined}
             >
-              {link.image ? null : <BrandIcon name={link.icon} />}
-            </span>
-            <strong>{link.featured && <small className="featured-badge">{link.badge || "Fitur Baru"}</small>}{link.title}</strong><span>•••</span>
-          </a>
-        ))}
-        {(profile.products ?? []).filter((product) => product.enabled).map((product) => (
-          <a key={product.id} href={product.url || "#"} target="_blank" rel="noreferrer" onClick={() => trackClick(product, "product")} style={{ background: theme.button, color: theme.buttonText, borderColor: theme.outline ? theme.text : "transparent" }}>
-            <span className="product-glyph">▣</span><strong>{product.title}<small>{product.price}</small></strong><span>↗</span>
-          </a>
-        ))}
-      </section>
-      {profile.emailCapture && (
-        <form className="standalone-email" onSubmit={(event) => { event.preventDefault(); setJoined(true); }}>
-          <strong>{joined ? "You’re on the list ✓" : "Stay in the loop"}</strong>
-          {!joined && <div><input type="email" required placeholder="you@email.com" /><button type="submit">Join</button></div>}
-        </form>
-      )}
-      <footer><strong>NEMU Link Bio</strong><small>Powered by NEMU AI</small></footer>
+              {!profile.profileImage && name.slice(0, 2).toUpperCase()}
+            </div>
+            <h1 id="profile-name">@{name}</h1>
+            {profile.bio && <p className={styles.bio}>{profile.bio}</p>}
+            {socials.length > 0 && (
+              <nav className={styles.socials} aria-label="Media sosial">
+                {socials.map((link) => (
+                  <a key={link.id} href={link.url || "#"} target="_blank" rel="noreferrer" aria-label={link.title || link.icon} onClick={() => trackClick(link, "link")}>
+                    <BrandIcon name={link.icon} />
+                  </a>
+                ))}
+              </nav>
+            )}
+          </section>
+          <div className={styles.content}>
+            <section aria-label="Tautan profil" className={styles.links}>
+              {enabledLinks.map((link) => {
+                if (link.kind === "collection") return <h2 className={styles.collection} key={link.id}>{link.title}</h2>;
+                const destination = destinationLabel(link.url);
+                return (
+                  <a
+                    key={link.id}
+                    className={styles.row}
+                    data-featured={link.featured || undefined}
+                    href={link.url || "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => trackClick(link, "link")}
+                  >
+                    <span aria-hidden="true" className={styles.media} data-image={Boolean(link.image) || undefined}
+                      style={link.image ? { backgroundImage: `url("${link.image}")` } : undefined}>
+                      {!link.image && <BrandIcon name={link.icon} />}
+                    </span>
+                    <span className={styles.label}>
+                      {link.featured && <small className={styles.badge}>{link.badge || "Fitur Baru"}</small>}
+                      <strong>{link.title || destination || "Buka tautan"}</strong>
+                      {destination && link.title && !link.featured && <small>{destination}</small>}
+                    </span>
+                    <FiArrowUpRight aria-hidden="true" className={styles.arrow} />
+                  </a>
+                );
+              })}
+              {products.map((product) => (
+                <a className={styles.row} key={`product-${product.id}`} href={product.url || "#"} target="_blank" rel="noreferrer" onClick={() => trackClick(product, "product")}>
+                  <span className={styles.media}><FiShoppingBag aria-hidden="true" /></span>
+                  <span className={styles.label}><strong>{product.title || "Lihat produk"}</strong>{product.price && <small>{product.price}</small>}</span>
+                  <FiArrowUpRight aria-hidden="true" className={styles.arrow} />
+                </a>
+              ))}
+            </section>
+            {profile.emailCapture && (
+              <form className={styles.email} onSubmit={(event) => { event.preventDefault(); setJoined(true); }}>
+                <strong aria-live="polite">{joined ? "Terima kasih sudah bergabung." : "Ikuti kabar terbaru"}</strong>
+                {!joined && <div><input aria-label="Alamat email" autoComplete="email" type="email" required placeholder="nama@email.com" /><button type="submit">Daftar</button></div>}
+              </form>
+            )}
+          </div>
+        </div>
+        <footer className={styles.footer}>Powered by NEMU AI</footer>
+      </div>
     </main>
   );
 }
