@@ -1,0 +1,85 @@
+.showcase {
+  container-type: inline-size;
+  position: relative;
+  isolation: isolate;
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: clamp(22px, 2.45vw, 38px);
+  background: #9d7ad6;
+}
+.photo { display: block; width: 100%; height: auto; }
+.board {
+  position: absolute;
+  inset: 25.3% 19.6% 12% 51.7%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  color: #3f224b;
+  text-align: center;
+  pointer-events: none;
+}
+.wordmark {
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 7.6cqw;
+  line-height: .77;
+  letter-spacing: -.04em;
+  color: #49245f;
+}
+.wordmark i { font-weight: 600; }
+.handle, .poweredBy, .studioLink, .collection > span:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .65cqw;
+  line-height: 1.1;
+  font-size: 1.85cqw;
+  font-weight: 650;
+}
+.handle { font-size: 1.67cqw; }
+.handle svg { width: 1.65cqw; height: 1.65cqw; }
+.collection {
+  overflow: hidden;
+  border: .2cqw solid #482756;
+  border-radius: 1.9cqw;
+  background: #ecfcc3;
+}
+.productPhoto {
+  display: block;
+  aspect-ratio: 1.6;
+  background: #a37bda url("/hero-studio-koleksi.webp") center 55% / cover no-repeat;
+}
+.collection > span:last-child, .studioLink {
+  justify-content: space-between;
+  padding: 1.35cqw 1.55cqw;
+  font-size: 1.91cqw;
+}
+.collection svg, .studioLink svg { width: 1.85cqw; height: 1.85cqw; }
+.studioLink {
+  border-radius: 1.6cqw;
+  border: .2cqw solid #482756;
+  background: #e3d4ff;
+}
+.poweredBy { font-size: 1.45cqw; }
+.poweredBy i {
+  width: 1.9cqw;
+  height: 1.9cqw;
+  background: currentColor;
+  mask: url("/favicon.svg") center / contain no-repeat;
+}
+.caption {
+  position: absolute;
+  bottom: 1.7%;
+  right: 2.2%;
+  border-radius: 2em;
+  background: #f1eaf9;
+  color: #422b53;
+  padding: .46em .82em;
+  font-size: clamp(10px, 1.53cqw, 13px);
+  line-height: 1.1;
+  font-weight: 600;
+}
